@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import type { Stream } from "./syllabus";
 
 export interface Note { id: string; type: "formula" | "mistake" | "definition"; text: string; at: number }
-export interface ChatMsg { id: string; room: string; from: string; text: string; at: number; attach?: { kind: "pdf" | "image" | "voice" | "unit"; label: string } }
+export interface ChatMsg { id: string; room: string; from: string; text: string; at: number; attach?: undefined | { kind: "pdf" | "image" | "voice" | "unit"; label: string } }
 export interface State {
   name: string; stream: Stream; theme: "dark" | "light";
   done: Record<string, boolean>;

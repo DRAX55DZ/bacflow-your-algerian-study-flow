@@ -113,8 +113,8 @@ function Countdown() {
         ))}
       </div>
       <motion.div key={q} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-4">
-        <p className="ar text-lg text-right" dir="rtl">{QUOTES[q].ar}</p>
-        <p className="text-sm text-muted-foreground">{QUOTES[q].en}</p>
+        <p className="ar text-lg text-right" dir="rtl">{QUOTES[q]!.ar}</p>
+        <p className="text-sm text-muted-foreground">{QUOTES[q]!.en}</p>
       </motion.div>
     </Card>
   );

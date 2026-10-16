@@ -30,7 +30,7 @@ const base: Omit<Subject, "units">[] = [
 
 export const SUBJECTS: Subject[] = base.map((s) => ({
   ...s,
-  units: unitNames[s.id].map(([en, ar], i) => {
+  units: (unitNames[s.id] ?? []).map(([en, ar], i) => {
     const uid = `${s.id}-u${i + 1}`;
     return {
       id: uid, title: en, ar,
@@ -64,9 +64,9 @@ export function subjectPct(s: Subject, done: Record<string, boolean>) {
 export function overallPct(stream: Stream, done: Record<string, boolean>) {
   const c = COEFFS[stream];
   let w = 0, t = 0;
-  for (const s of SUBJECTS) { w += c[s.id]; t += c[s.id] * subjectPct(s, done); }
+  for (const s of SUBJECTS) { w += c[s.id] ?? 0; t += (c[s.id] ?? 0) * subjectPct(s, done); }
   return w ? t / w : 0;
 }
 
 export const sortedSubjects = (stream: Stream) =>
-  [...SUBJECTS].sort((a, b) => COEFFS[stream][b.id] - COEFFS[stream][a.id]);
+  [...SUBJECTS].sort((a, b) => (COEFFS[stream][b.id] ?? 0) - (COEFFS[stream][a.id] ?? 0));
