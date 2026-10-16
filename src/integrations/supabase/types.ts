@@ -14,13 +14,211 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity: {
+        Row: {
+          count: number
+          day: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          day: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          day?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      friendships: {
+        Row: {
+          created_at: string
+          friend_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          friend_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          friend_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          attach_kind: string | null
+          attach_label: string | null
+          attach_path: string | null
+          created_at: string
+          id: string
+          room: string
+          sender_id: string
+          sender_name: string
+          text: string
+        }
+        Insert: {
+          attach_kind?: string | null
+          attach_label?: string | null
+          attach_path?: string | null
+          created_at?: string
+          id?: string
+          room: string
+          sender_id?: string
+          sender_name?: string
+          text?: string
+        }
+        Update: {
+          attach_kind?: string | null
+          attach_label?: string | null
+          attach_path?: string | null
+          created_at?: string
+          id?: string
+          room?: string
+          sender_id?: string
+          sender_name?: string
+          text?: string
+        }
+        Relationships: []
+      }
+      notes: {
+        Row: {
+          created_at: string
+          id: string
+          text: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          text: string
+          type: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          text?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nudges: {
+        Row: {
+          created_at: string
+          from_id: string
+          id: string
+          kind: string
+          seen: boolean
+          to_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_id?: string
+          id?: string
+          kind?: string
+          seen?: boolean
+          to_id: string
+        }
+        Update: {
+          created_at?: string
+          from_id?: string
+          id?: string
+          kind?: string
+          seen?: boolean
+          to_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          invite_code: string
+          last_activity: string
+          name: string
+          onboarded: boolean
+          stream: string
+          theme: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          invite_code?: string
+          last_activity?: string
+          name?: string
+          onboarded?: boolean
+          stream?: string
+          theme?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invite_code?: string
+          last_activity?: string
+          name?: string
+          onboarded?: boolean
+          stream?: string
+          theme?: string
+        }
+        Relationships: []
+      }
+      progress: {
+        Row: {
+          done_at: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          done_at?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          done_at?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      targets: {
+        Row: {
+          created_at: string
+          done: boolean
+          id: string
+          text: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          text: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          text?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_friend: { Args: { _code: string }; Returns: Json }
+      is_friend: { Args: { _other: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
