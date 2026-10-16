@@ -153,7 +153,7 @@ function Heatmap({ activity }: { activity: Record<string, number> }) {
   return (
     <>
       <h2 className="font-bold mb-3">Study consistency <span className="ar text-xs text-muted-foreground">خريطة المراجعة</span></h2>
-      <div className="grid grid-flow-col grid-rows-7 gap-1 overflow-x-auto">
+      <div className="grid grid-flow-col grid-rows-7 auto-cols-max gap-1 overflow-x-auto">
         {days.map((d) => <div key={d} title={`${d}: ${activity[d] ?? 0} items`} className="size-3.5 rounded-sm" style={{ background: lvl(activity[d] ?? 0) }} />)}
       </div>
     </>
