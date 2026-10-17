@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, Copy, Flame } from "lucide-react";
+import { Bell, Copy, Flame, UserPlus } from "lucide-react";
 import { Bar, Card } from "@/components/AppShell";
-import { FRIENDS } from "@/lib/friends";
+import { fetchFriends, type Friend } from "@/lib/friends";
 import { overallPct, STREAM_LABEL } from "@/lib/syllabus";
 import { streak, useAppState } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/friends")({
   head: () => ({
@@ -22,23 +23,54 @@ export const Route = createFileRoute("/friends")({
 function Friends() {
   const s = useAppState();
   const [toast, setToast] = useState("");
-  const [reacts, setReacts] = useState<Record<string, string>>({});
-  const flash = (m: string) => { setToast(m); setTimeout(() => setToast(""), 2000); };
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [code, setCode] = useState("");
+  const flash = (m: string) => { setToast(m); setTimeout(() => setToast(""), 2500); };
+  const reload = () => { if (s.userId) fetchFriends(s.userId).then(setFriends); };
+
+  useEffect(() => {
+    reload();
+    const ch = supabase.channel("board").on("postgres_changes", { event: "*", schema: "public", table: "progress" }, reload)
+      .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, reload).subscribe();
+    return () => { supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.userId]);
+
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault(); if (!code.trim()) return;
+    const { data, error } = await supabase.rpc("add_friend", { _code: code });
+    if (error) return flash(error.message);
+    flash(`Added ${(data as { name: string }).name || "friend"} 🎉`); setCode(""); reload();
+  };
+  const send = async (f: Friend, kind: string) => {
+    const { error } = await supabase.from("nudges").insert({ to_id: f.id, kind });
+    flash(error ? "Couldn't send" : kind === "nudge" ? `Nudged ${f.name} to study 📣` : `Sent ${kind} to ${f.name}`);
+  };
+
   const me = { id: "me", name: `${s.name} (you)`, stream: s.stream, streak: streak(s.activity), pct: Math.round(overallPct(s.stream, s.done)), last: "", active: true };
-  const board = [...FRIENDS, me].sort((a, b) => b.pct - a.pct);
-  const code = "BAC-7K2Q";
+  const board = [...friends, me].sort((a, b) => b.pct - a.pct);
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
-      <Card>
-        <h2 className="font-bold">Invite classmates</h2>
-        <p className="text-sm text-muted-foreground mt-1">Share your code so friends can add you.</p>
-        <button onClick={() => { navigator.clipboard?.writeText(code); flash("Invite code copied"); }} className="mt-4 flex w-full items-center justify-between rounded-xl border-2 border-dashed border-primary p-4 font-mono text-xl font-bold">
-          {code}<Copy className="size-4" />
-        </button>
-      </Card>
+      <div className="space-y-4">
+        <Card>
+          <h2 className="font-bold">Your invite code</h2>
+          <p className="text-sm text-muted-foreground mt-1">Share it so friends can add you.</p>
+          <button onClick={() => { navigator.clipboard?.writeText(s.inviteCode); flash("Invite code copied"); }} className="mt-4 flex w-full items-center justify-between rounded-xl border-2 border-dashed border-primary p-4 font-mono text-xl font-bold">
+            {s.inviteCode}<Copy className="size-4" />
+          </button>
+        </Card>
+        <Card>
+          <h2 className="font-bold">Add a friend</h2>
+          <form onSubmit={add} className="mt-3 flex gap-2">
+            <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="BAC-XXXX" className="flex-1 min-w-0 rounded-xl bg-muted px-3 py-2 font-mono text-sm outline-none focus:ring-2 ring-ring" />
+            <button className="flex items-center gap-1 rounded-xl bg-gradient-brand px-3 text-sm font-medium text-primary-foreground"><UserPlus className="size-4" />Add</button>
+          </form>
+        </Card>
+      </div>
       <Card className="md:col-span-2">
         <h2 className="font-bold mb-3">Leaderboard <span className="ar text-xs text-muted-foreground">لوحة الصدارة</span></h2>
+        {friends.length === 0 && <p className="mb-3 text-sm text-muted-foreground">No friends yet — add a classmate with their invite code.</p>}
         <ul className="space-y-2">
           {board.map((f, i) => (
             <motion.li layout key={f.id} className={`flex flex-wrap items-center gap-3 rounded-xl p-3 ${f.id === "me" ? "bg-accent" : "bg-muted/50"}`}>
@@ -54,9 +86,9 @@ function Friends() {
               {f.id !== "me" && (
                 <div className="flex items-center gap-1">
                   {["🔥", "👏", "📚", "⚡"].map((e) => (
-                    <motion.button whileTap={{ scale: 1.5 }} key={e} onClick={() => { setReacts((r) => ({ ...r, [f.id]: e })); flash(`Sent ${e} to ${f.name}`); }} className={`rounded-lg px-1.5 py-1 hover:bg-background ${reacts[f.id] === e ? "bg-background" : ""}`}>{e}</motion.button>
+                    <motion.button whileTap={{ scale: 1.5 }} key={e} onClick={() => send(f as Friend, e)} className="rounded-lg px-1.5 py-1 hover:bg-background">{e}</motion.button>
                   ))}
-                  {!f.active && <button onClick={() => flash(`Nudged ${f.name} to study 📣`)} className="ml-1 flex items-center gap-1 rounded-lg bg-gradient-flame px-2 py-1 text-xs font-medium text-primary-foreground"><Bell className="size-3" />Nudge</button>}
+                  <button onClick={() => send(f as Friend, "nudge")} className="ml-1 flex items-center gap-1 rounded-lg bg-gradient-flame px-2 py-1 text-xs font-medium text-primary-foreground"><Bell className="size-3" />Nudge</button>
                 </div>
               )}
             </motion.li>
