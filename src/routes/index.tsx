@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Check, Flame } from "lucide-react";
 import { Bar, Card } from "@/components/AppShell";
-import { setState, streak, today, useAppState } from "@/lib/store";
+import { addTarget, toggleTarget, streak, today, useAppState } from "@/lib/store";
 import { COEFFS, overallPct, sortedSubjects, subjectPct } from "@/lib/syllabus";
 
 export const Route = createFileRoute("/")({
@@ -129,14 +129,14 @@ function Targets() {
       <ul className="mt-3 space-y-2">
         {s.targets.map((t) => (
           <li key={t.id}>
-            <button onClick={() => { if (!t.done) confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } }); setState((x) => ({ ...x, targets: x.targets.map((y) => (y.id === t.id ? { ...y, done: !y.done } : y)) })); }} className="flex w-full items-center gap-3 rounded-xl p-2 text-left text-sm hover:bg-muted">
+            <button onClick={() => { if (!t.done) confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } }); toggleTarget(t.id); }} className="flex w-full items-center gap-3 rounded-xl p-2 text-left text-sm hover:bg-muted">
               <span className={`size-5 shrink-0 rounded-md border-2 flex items-center justify-center ${t.done ? "bg-mint border-mint" : "border-muted-foreground"}`}>{t.done && <Check className="size-3 text-background" />}</span>
               <span className={t.done ? "line-through text-muted-foreground" : ""}>{t.text}</span>
             </button>
           </li>
         ))}
       </ul>
-      <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!text.trim()) return; setState((x) => ({ ...x, targets: [...x.targets, { id: crypto.randomUUID(), text, done: false }] })); setText(""); }}>
+      <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!text.trim()) return; addTarget(text.trim()); setText(""); }}>
         <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Add a goal…" className="flex-1 rounded-xl bg-muted px-3 py-2 text-sm outline-none" />
       </form>
     </Card>
