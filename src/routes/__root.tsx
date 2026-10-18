@@ -14,6 +14,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "@/components/AppShell";
 import { AuthGate } from "@/components/AuthGate";
+import { InstallBanner } from "@/components/InstallBanner";
+import { setupServiceWorker } from "@/lib/pwa";
 
 function NotFoundComponent() {
   return (
@@ -54,10 +56,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Track your Algerian Baccalaureate progress with streaks, friends and focus tools." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#0B0F17" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" },
     ],
@@ -79,9 +84,11 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => { void setupServiceWorker(); }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <AuthGate><AppShell><Outlet /></AppShell></AuthGate>
+      <InstallBanner />
     </QueryClientProvider>
   );
 }

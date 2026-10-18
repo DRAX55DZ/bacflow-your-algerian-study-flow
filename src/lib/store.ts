@@ -32,8 +32,20 @@ export const getState = () => state;
 
 const warn = (r: { error: unknown }) => { if (r.error) console.error(r.error); };
 
+const SNAP = "bacflow-snapshot";
+const QUEUE = "bacflow-pending";
+type Pending = { id: string; done: boolean; day: string; count: number };
+const readQueue = (): Pending[] => { try { return JSON.parse(localStorage.getItem(QUEUE) || "[]"); } catch { return []; } };
+const writeQueue = (q: Pending[]) => localStorage.setItem(QUEUE, JSON.stringify(q));
+function saveSnap() { if (state.userId) try { localStorage.setItem(SNAP, JSON.stringify(state)); } catch { /* full */ } }
+subs.add(saveSnap);
+
 export async function loadUser(userId: string | null) {
   if (!userId) { set(() => ({ ...DEFAULT, ready: true })); return; }
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    try { const snap = JSON.parse(localStorage.getItem(SNAP) || "null") as State | null; if (snap?.userId === userId) { set(() => ({ ...snap, ready: true })); return; } } catch { /* ignore */ }
+  }
+  await flushPending(userId);
   const [p, pr, a, n, t] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("progress").select("item_id").eq("user_id", userId),
@@ -64,6 +76,7 @@ export function toggleItem(id: string) {
   const d = today();
   const count = (state.activity[d] ?? 0) + (completed ? 1 : 0);
   set((s) => ({ ...s, done: { ...s.done, [id]: completed }, activity: completed ? { ...s.activity, [d]: count } : s.activity }));
+  if (!navigator.onLine) { writeQueue([...readQueue().filter((p) => p.id !== id), { id, done: completed, day: d, count }]); return completed; }
   void (async () => {
     if (completed) {
       warn(await supabase.from("progress").insert({ user_id: uid, item_id: id }));
@@ -102,3 +115,16 @@ export function streak(activity: Record<string, number>) {
   while (activity[today(d)]) { n++; d.setDate(d.getDate() - 1); }
   return n;
 }
+
+/** Push syllabus ticks made while offline once the connection is back. */
+export async function flushPending(uid = state.userId) {
+  const q = readQueue(); if (!uid || !q.length || !navigator.onLine) return;
+  writeQueue([]);
+  for (const p of q) {
+    if (p.done) {
+      warn(await supabase.from("progress").upsert({ user_id: uid, item_id: p.id }));
+      warn(await supabase.from("activity").upsert({ user_id: uid, day: p.day, count: Math.max(p.count, state.activity[p.day] ?? 0) }));
+    } else warn(await supabase.from("progress").delete().eq("user_id", uid).eq("item_id", p.id));
+  }
+}
+if (typeof window !== "undefined") window.addEventListener("online", () => { void flushPending(); });
