@@ -1,10 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LogOut, LayoutDashboard, BookOpen, Users, MessageCircle, Timer, Moon, Sun, NotebookPen, Flame, X } from "lucide-react";
+import { LogOut, LayoutDashboard, BookOpen, Users, MessageCircle, Timer, Settings, NotebookPen, Flame, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { addNote, deleteNote, streak, updateProfile, useAppState, type Note } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { STREAM_LABEL, type Stream } from "@/lib/syllabus";
+import { ThemeMenu } from "@/components/ThemePicker";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -12,6 +13,7 @@ const NAV = [
   { to: "/friends", label: "Friends", icon: Users },
   { to: "/chat", label: "Chat", icon: MessageCircle },
   { to: "/focus", label: "Focus", icon: Timer },
+  { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -67,9 +69,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Flame className="size-4" /> {streak(s.activity)}
           </div>
           <button onClick={() => setDrawer(true)} title="Formula & mistake log" className="size-9 flex items-center justify-center rounded-full hover:bg-muted"><NotebookPen className="size-4" /></button>
-          <button onClick={() => updateProfile({ theme: s.theme === "dark" ? "light" : "dark" })} title="Toggle theme" className="size-9 flex items-center justify-center rounded-full hover:bg-muted">
-            {s.theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          </button>
+          <ThemeMenu />
           <button onClick={() => supabase.auth.signOut()} title="Sign out" className="size-9 flex items-center justify-center rounded-full hover:bg-muted"><LogOut className="size-4" /></button>
         </div>
       </header>

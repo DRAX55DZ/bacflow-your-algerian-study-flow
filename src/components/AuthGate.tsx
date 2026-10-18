@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { applyTheme } from "@/lib/themes";
 import { loadUser, updateProfile, useAppState } from "@/lib/store";
 import { STREAM_LABEL, type Stream } from "@/lib/syllabus";
 
@@ -14,7 +15,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     });
     return () => data.subscription.unsubscribe();
   }, []);
-  useEffect(() => { document.documentElement.classList.toggle("dark", s.theme === "dark"); }, [s.theme]);
+  useEffect(() => { applyTheme(s.theme); }, [s.theme]);
 
   if (!s.ready) return <div className="flex min-h-screen items-center justify-center text-gradient text-2xl font-bold">BacFlow</div>;
   if (!s.userId) return <AuthScreen />;
