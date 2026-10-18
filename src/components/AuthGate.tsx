@@ -9,7 +9,7 @@ import { STREAM_LABEL, type Stream } from "@/lib/syllabus";
 export function AuthGate({ children }: { children: ReactNode }) {
   const s = useAppState();
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => loadUser(data.user?.id ?? null));
+    supabase.auth.getSession().then(({ data }) => loadUser(data.session?.user.id ?? null));
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT") loadUser(session?.user.id ?? null);
     });
