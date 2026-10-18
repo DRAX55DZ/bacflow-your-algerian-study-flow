@@ -1,12 +1,13 @@
 import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { itemLabel, type Stream } from "./syllabus";
+import { normalizeTheme, type ThemeId } from "./themes";
 
 export interface Note { id: string; type: "formula" | "mistake" | "definition"; text: string; at: number }
 export interface Target { id: string; text: string; done: boolean }
 export interface State {
   userId: string | null; ready: boolean; onboarded: boolean; inviteCode: string;
-  name: string; stream: Stream; theme: "dark" | "light";
+  name: string; stream: Stream; theme: ThemeId;
   done: Record<string, boolean>;
   activity: Record<string, number>; // yyyy-mm-dd -> items done
   notes: Note[];
@@ -17,7 +18,7 @@ export const today = (d = new Date()) => d.toISOString().slice(0, 10);
 
 const DEFAULT: State = {
   userId: null, ready: false, onboarded: false, inviteCode: "",
-  name: "", stream: "sci", theme: "dark", done: {}, activity: {}, notes: [], targets: [],
+  name: "", stream: "sci", theme: "cyber", done: {}, activity: {}, notes: [], targets: [],
 };
 
 let state: State = DEFAULT;
@@ -44,7 +45,7 @@ export async function loadUser(userId: string | null) {
   set(() => ({
     userId, ready: true,
     onboarded: !!prof?.onboarded, inviteCode: prof?.invite_code ?? "",
-    name: prof?.name ?? "", stream: (prof?.stream as Stream) ?? "sci", theme: (prof?.theme as "dark" | "light") ?? "dark",
+    name: prof?.name ?? "", stream: (prof?.stream as Stream) ?? "sci", theme: normalizeTheme(prof?.theme),
     done: Object.fromEntries((pr.data ?? []).map((r) => [r.item_id, true])),
     activity: Object.fromEntries((a.data ?? []).map((r) => [r.day, r.count])),
     notes: (n.data ?? []).map((r) => ({ id: r.id, type: r.type as Note["type"], text: r.text, at: +new Date(r.created_at) })),
