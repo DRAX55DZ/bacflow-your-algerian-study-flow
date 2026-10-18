@@ -10,6 +10,6 @@ export const normalizeTheme = (t: string | null | undefined): ThemeId =>
   THEMES.some((x) => x.id === t) ? (t as ThemeId) : t === "light" ? "light" : "cyber";
 export function applyTheme(t: ThemeId) {
   const el = document.documentElement;
-  el.dataset.theme = t;
+  el.dataset["theme"] = t;
   el.classList.toggle("dark", t !== "light");
 }
