@@ -192,6 +192,7 @@ export type Database = {
         Row: {
           created_at: string
           done: boolean
+          done_on: string | null
           id: string
           text: string
           user_id: string
@@ -199,6 +200,7 @@ export type Database = {
         Insert: {
           created_at?: string
           done?: boolean
+          done_on?: string | null
           id?: string
           text: string
           user_id?: string
@@ -206,6 +208,7 @@ export type Database = {
         Update: {
           created_at?: string
           done?: boolean
+          done_on?: string | null
           id?: string
           text?: string
           user_id?: string
