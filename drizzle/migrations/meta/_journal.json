@@ -15,6 +15,13 @@
       "when": 1792275088375,
       "tag": "0001_tighten_chat_files_read",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792392162938,
+      "tag": "0002_global_board_chat",
+      "breakpoints": true
     }
   ]
 }
