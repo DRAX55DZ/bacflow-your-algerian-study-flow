@@ -14,7 +14,11 @@ export interface State {
   targets: Target[];
 }
 
-export const today = (d = new Date()) => d.toISOString().slice(0, 10);
+/** Local calendar day (yyyy-mm-dd), so "today" flips at the student's own midnight. */
+export const today = (d = new Date()) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+/** A daily target only counts as done on the day it was ticked. */
+export const doneToday = (doneOn: string | null | undefined, now = new Date()) => doneOn === today(now);
 
 const DEFAULT: State = {
   userId: null, ready: false, onboarded: false, inviteCode: "",
@@ -61,7 +65,7 @@ export async function loadUser(userId: string | null) {
     done: Object.fromEntries((pr.data ?? []).map((r) => [r.item_id, true])),
     activity: Object.fromEntries((a.data ?? []).map((r) => [r.day, r.count])),
     notes: (n.data ?? []).map((r) => ({ id: r.id, type: r.type as Note["type"], text: r.text, at: +new Date(r.created_at) })),
-    targets: (t.data ?? []).map((r) => ({ id: r.id, text: r.text, done: r.done })),
+    targets: (t.data ?? []).map((r) => ({ id: r.id, text: r.text, done: doneToday(r.done_on) })),
   }));
 }
 
@@ -104,7 +108,16 @@ export async function addTarget(text: string) {
 export async function toggleTarget(id: string) {
   const t = state.targets.find((x) => x.id === id); if (!t) return;
   set((s) => ({ ...s, targets: s.targets.map((y) => (y.id === id ? { ...y, done: !y.done } : y)) }));
-  warn(await supabase.from("targets").update({ done: !t.done }).eq("id", id));
+  warn(await supabase.from("targets").update({ done: !t.done, done_on: t.done ? null : today() }).eq("id", id));
+}
+
+/** Untick every daily target once the clock passes midnight while the app is open. */
+if (typeof window !== "undefined") {
+  let day = today();
+  setInterval(() => {
+    const d = today(); if (d === day) return; day = d;
+    set((s) => ({ ...s, targets: s.targets.map((x) => ({ ...x, done: false })) }));
+  }, 30_000);
 }
 
 /** Consecutive study days ending today (or yesterday if nothing logged yet today). */

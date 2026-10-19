@@ -1,5 +1,5 @@
 export type Stream = "sci" | "math";
-export type ItemKind = "lesson" | "exercise" | "summary" | "bac";
+export type ItemKind = "lesson" | "exercise" | "summary" | "bac" | "quiz";
 export type Difficulty = "easy" | "medium" | "hard";
 export interface Item { id: string; kind: ItemKind; title: string; difficulty?: Difficulty }
 export interface Unit { id: string; title: string; ar: string; items: Item[] }
@@ -72,6 +72,7 @@ function build(stream: Stream): Subject[] {
             { id: `${uid}-e1`, kind: "exercise", title: "Exercises", difficulty: "easy" },
             { id: `${uid}-e2`, kind: "exercise", title: "Exercises", difficulty: "medium" },
             { id: `${uid}-e3`, kind: "exercise", title: "Exercises", difficulty: "hard" },
+            { id: `${uid}-q`, kind: "quiz", title: "Unit quiz" },
           ],
         };
       }),
