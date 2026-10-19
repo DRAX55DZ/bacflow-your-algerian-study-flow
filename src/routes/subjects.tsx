@@ -7,6 +7,7 @@ import { Bar, Card } from "@/components/AppShell";
 import { getState, toggleItem, useAppState } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { COEFFS, sortedSubjects, subjectPct, type Item, type ItemKind, type Unit } from "@/lib/syllabus";
+import { QuizRow } from "@/components/UnitQuiz";
 
 export const Route = createFileRoute("/subjects")({
   head: () => ({
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/subjects")({
   component: Subjects,
 });
 
-const KIND: Record<ItemKind, string> = { lesson: "text-violet", exercise: "text-cyan", summary: "text-mint", bac: "text-flame" };
+const KIND: Record<ItemKind, string> = { lesson: "text-violet", exercise: "text-cyan", summary: "text-mint", bac: "text-flame", quiz: "text-violet" };
 const DIFF = { easy: "bg-mint/20 text-mint", medium: "bg-cyan/20 text-cyan", hard: "bg-flame/20 text-flame" };
 
 const tick = (id: string, e: React.MouseEvent) => { if (toggleItem(id)) confetti({ particleCount: 50, spread: 55, origin: { x: e.clientX / innerWidth, y: e.clientY / innerHeight } }); };
@@ -91,7 +92,7 @@ function UnitBox({ unit, subject, n }: { unit: Unit; subject: string; n: number 
         <div className="flex-1"><div className="text-sm font-medium">{n}. {unit.title}</div><div dir="rtl" className="ar text-xs text-muted-foreground text-left">{unit.ar}</div></div>
         <button onClick={share} title="Share to group chat" className="size-8 flex items-center justify-center rounded-lg hover:bg-muted"><Share2 className="size-4" /></button>
       </div>
-      {unit.items.map((it) => <Row key={it.id} it={it} />)}
+      {unit.items.map((it) => (it.kind === "quiz" ? <QuizRow key={it.id} it={it} unit={unit} subject={subject} /> : <Row key={it.id} it={it} />))}
     </div>
   );
 }
