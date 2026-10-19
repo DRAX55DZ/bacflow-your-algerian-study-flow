@@ -12,7 +12,7 @@ export const generateQuiz = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<{ questions: QuizQuestion[]; error: string | null }> => {
     const { streamText, Output } = await import("ai");
     const { createOpenAI } = await import("@ai-sdk/openai");
-    const key = process.env.LOVABLE_API_KEY;
+    const key = process.env['LOVABLE_API_KEY'];
     if (!key) return { questions: [], error: "Quizzes aren't configured yet." };
     const openai = createOpenAI({
       baseURL: "https://ai.gateway.lovable.dev/v1",
