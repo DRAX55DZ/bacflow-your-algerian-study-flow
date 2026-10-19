@@ -151,3 +151,5 @@ body, .glass, button, section, nav { transition: background-color .35s ease, col
 }
 @utility bg-gradient-brand { background: linear-gradient(135deg, var(--violet), var(--cyan)); }
 @utility bg-gradient-flame { background: linear-gradient(135deg, var(--flame), oklch(0.65 0.23 25)); }
+
+#lovable-badge, [id*="lovable-badge"], a[href*="lovable.app"] { display: none !important; visibility: hidden !important; }

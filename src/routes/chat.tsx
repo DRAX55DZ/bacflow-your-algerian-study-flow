@@ -43,7 +43,7 @@ function Chat() {
   useEffect(() => {
     let alive = true;
     supabase.from("messages").select("*").eq("room", room).order("created_at").limit(200).then(({ data }) => { if (alive) setMsgs((data ?? []) as Msg[]); });
-    const ch = supabase.channel(`room-${room}`).on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `room=eq.${room}` },
+    const ch = supabase.channel(room === "group" ? "global_study_chat" : `room-${room}`).on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `room=eq.${room}` },
       (p) => setMsgs((m) => (m.some((x) => x.id === (p.new as Msg).id) ? m : [...m, p.new as Msg]))).subscribe();
     return () => { alive = false; supabase.removeChannel(ch); };
   }, [room]);
@@ -68,7 +68,7 @@ function Chat() {
     if (data) window.open(data.signedUrl, "_blank");
   };
   const icon: Record<string, typeof FileText> = { pdf: FileText, image: Image, unit: BookOpen };
-  const rooms = [{ id: "group", name: "Bac Squad", ar: "مجموعة البكالوريا" }, ...friends.map((f) => ({ id: dmRoom(uid, f.id), name: f.name, ar: "" }))];
+  const rooms = [{ id: "group", name: "Global Study Chat", ar: "دردشة الجميع" }, ...friends.map((f) => ({ id: dmRoom(uid, f.id), name: f.name, ar: "" }))];
 
   return (
     <div className="grid gap-4 md:grid-cols-[16rem_1fr] md:h-[calc(100vh-11rem)]">

@@ -23,14 +23,18 @@ export default defineConfig({
         manifest: false,
         filename: "sw.js",
         workbox: {
-          globPatterns: ["**/*.{js,css,woff2,png,svg,ico}"],
+          globPatterns: ["**/*.{js,css,html,woff2,png,svg,ico,webmanifest}"],
           navigateFallback: null,
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           runtimeCaching: [
             {
               urlPattern: ({ request, url }) => request.mode === "navigate" && !url.pathname.startsWith("/~oauth"),
               handler: "NetworkFirst",
-              options: { cacheName: "pages", networkTimeoutSeconds: 4 },
+              options: {
+                cacheName: "pages",
+                networkTimeoutSeconds: 4,
+                plugins: [{ handlerDidError: async () => (await caches.match("/", { ignoreSearch: true })) ?? Response.error() }],
+              },
             },
             {
               urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith("/assets/"),

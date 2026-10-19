@@ -21,3 +21,18 @@ export async function fetchFriends(userId: string): Promise<Friend[]> {
     return { id: f.id, name: f.name || "Student", stream: f.stream as Stream, streak: st, pct: Math.round(overallPct(f.stream as Stream, done)), last: f.last_activity, active: st > 0 };
   });
 }
+
+/** Every registered student (global leaderboard). */
+export async function fetchEveryone(): Promise<Friend[]> {
+  const [p, pr, a] = await Promise.all([
+    supabase.from("profiles").select("id,name,stream,last_activity").eq("onboarded", true).limit(1000),
+    supabase.from("progress").select("user_id,item_id").limit(100000),
+    supabase.from("activity").select("user_id,day,count").limit(100000),
+  ]);
+  return (p.data ?? []).map((f) => {
+    const done = Object.fromEntries((pr.data ?? []).filter((r) => r.user_id === f.id).map((r) => [r.item_id, true]));
+    const act = Object.fromEntries((a.data ?? []).filter((r) => r.user_id === f.id).map((r) => [r.day, r.count]));
+    const st = streak(act);
+    return { id: f.id, name: f.name || "Student", stream: f.stream as Stream, streak: st, pct: Math.round(overallPct(f.stream as Stream, done)), last: f.last_activity, active: st > 0 };
+  });
+}
