@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Bell, Copy, Flame, UserPlus } from "lucide-react";
 import { Bar, Card } from "@/components/AppShell";
-import { fetchEveryone, fetchFriends, type Friend } from "@/lib/friends";
+import { fetchEveryone, type Friend } from "@/lib/friends";
 import { overallPct, STREAM_LABEL } from "@/lib/syllabus";
 import { streak, useAppState } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
