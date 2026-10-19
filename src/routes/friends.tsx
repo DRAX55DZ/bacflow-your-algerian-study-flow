@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Bell, Copy, Flame, UserPlus } from "lucide-react";
 import { Bar, Card } from "@/components/AppShell";
-import { fetchFriends, type Friend } from "@/lib/friends";
+import { fetchEveryone, type Friend } from "@/lib/friends";
 import { overallPct, STREAM_LABEL } from "@/lib/syllabus";
 import { streak, useAppState } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,7 @@ function Friends() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [code, setCode] = useState("");
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(""), 2500); };
-  const reload = () => { if (s.userId) fetchFriends(s.userId).then(setFriends); };
+  const reload = () => { if (s.userId) fetchEveryone().then((all) => setFriends(all.filter((f) => f.id !== s.userId))); };
 
   useEffect(() => {
     reload();
@@ -70,7 +70,7 @@ function Friends() {
       </div>
       <Card className="md:col-span-2">
         <h2 className="font-bold mb-3">Leaderboard <span className="ar text-xs text-muted-foreground">لوحة الصدارة</span></h2>
-        {friends.length === 0 && <p className="mb-3 text-sm text-muted-foreground">No friends yet — add a classmate with their invite code.</p>}
+        {friends.length === 0 && <p className="mb-3 text-sm text-muted-foreground">No other students yet — invite your classmates!</p>}
         <ul className="space-y-2">
           {board.map((f, i) => (
             <motion.li layout key={f.id} className={`flex flex-wrap items-center gap-3 rounded-xl p-3 ${f.id === "me" ? "bg-accent" : "bg-muted/50"}`}>

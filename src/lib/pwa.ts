@@ -14,5 +14,5 @@ export async function setupServiceWorker() {
     await Promise.all(regs.filter((r) => r.active?.scriptURL.endsWith("/sw.js")).map((r) => r.unregister()));
     return;
   }
-  navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(console.error);
+  navigator.serviceWorker.register("/sw.js", { scope: "/" }).then(() => caches.open("pages").then((c) => c.add("/"))).catch(console.error);
 }
