@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { generateQuiz, type QuizQuestion } from "@/lib/quiz.functions";
 import { getState, toggleItem, useAppState } from "@/lib/store";
 import { STREAM_LABEL, type Item, type Unit } from "@/lib/syllabus";
+import { useT } from "@/lib/i18n";
 
 export const PASS_MARK = 4; // out of 5
 export const passed = (score: number) => score >= PASS_MARK;
@@ -14,6 +15,7 @@ export function QuizRow({ it, unit, subject }: { it: Item; unit: Unit; subject: 
   const s = useAppState();
   const done = !!s.done[it.id];
   const [open, setOpen] = useState(false);
+  const { t, lang } = useT();
   const gen = useServerFn(generateQuiz);
   const [qs, setQs] = useState<QuizQuestion[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -35,15 +37,15 @@ export function QuizRow({ it, unit, subject }: { it: Item; unit: Unit; subject: 
     <>
       <button onClick={start} className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-muted">
         <span className={`size-4 rounded border-2 flex items-center justify-center ${done ? "bg-mint border-mint" : "border-muted-foreground"}`}>{done && <Check className="size-3 text-background" />}</span>
-        <span>{done ? "Quiz passed · retake" : "Take the unit quiz"}</span>
-        <Brain className="ml-auto size-3.5 text-violet" />
-        <span className="text-[10px] uppercase font-bold text-violet">quiz</span>
+        <span>{done ? t("Quiz passed · retake") : t("Take the unit quiz")}</span>
+        <Brain className="ms-auto size-3.5 text-violet" />
+        <span className="text-[10px] uppercase font-bold text-violet">{t("quiz")}</span>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{unit.title} — quiz</DialogTitle></DialogHeader>
-          <p className="text-xs text-muted-foreground">Get {PASS_MARK}/5 to mark this unit's quiz as done.</p>
-          {err && <p className="text-sm text-flame">{err} <button className="underline" onClick={start}>Retry</button></p>}
+          <DialogHeader><DialogTitle>{lang === "ar" ? unit.ar : unit.title} — {t("quiz")}</DialogTitle></DialogHeader>
+          <p className="text-xs text-muted-foreground">{t("Get 4/5 to mark this unit's quiz as done.")}</p>
+          {err && <p className="text-sm text-flame">{err} <button className="underline" onClick={start}>{t("Retry")}</button></p>}
           {!qs && !err && <div className="flex items-center gap-2 py-8 justify-center text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" /> Writing your questions…</div>}
           {qs && (
             <div className="space-y-4">
@@ -65,11 +67,11 @@ export function QuizRow({ it, unit, subject }: { it: Item; unit: Unit; subject: 
                 </div>
               ))}
               {!submitted ? (
-                <button disabled={picks.filter((p) => p !== undefined).length < qs.length} onClick={submit} className="w-full rounded-xl bg-primary py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">Submit answers</button>
+                <button disabled={picks.filter((p) => p !== undefined).length < qs.length} onClick={submit} className="w-full rounded-xl bg-primary py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">{t("Submit answers")}</button>
               ) : (
                 <div className="flex items-center gap-3">
-                  <span className={`text-sm font-semibold ${passed(score) ? "text-mint" : "text-flame"}`}>{score}/5 — {passed(score) ? "Passed!" : "Not yet, review the lesson and retry."}</span>
-                  <button onClick={start} className="ml-auto rounded-lg border px-3 py-1 text-sm hover:bg-muted">New quiz</button>
+                  <span className={`text-sm font-semibold ${passed(score) ? "text-mint" : "text-flame"}`}>{score}/5 — {passed(score) ? t("Passed!") : t("Not yet, review the lesson and retry.")}</span>
+                  <button onClick={start} className="ms-auto rounded-lg border px-3 py-1 text-sm hover:bg-muted">{t("New quiz")}</button>
                 </div>
               )}
             </div>

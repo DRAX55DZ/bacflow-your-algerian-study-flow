@@ -5,6 +5,7 @@ import confetti from "canvas-confetti";
 import { Check, Flame } from "lucide-react";
 import { Bar, Card } from "@/components/AppShell";
 import { addTarget, toggleTarget, streak, today, useAppState } from "@/lib/store";
+import { useT } from "@/lib/i18n";
 import { COEFFS, overallPct, sortedSubjects, subjectPct } from "@/lib/syllabus";
 
 export const Route = createFileRoute("/")({
@@ -31,24 +32,24 @@ function Dashboard() {
   const s = useAppState();
   const overall = overallPct(s.stream, s.done);
   const st = streak(s.activity);
+  const { t, lang } = useT();
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <Card className="md:col-span-2 flex items-center gap-6">
         <Ring pct={overall} />
         <div>
-          <div className="text-sm text-muted-foreground">Overall Bac completion</div>
-          <div className="text-xs text-muted-foreground ar">نسبة التحضير الإجمالية (حسب المعاملات)</div>
+          <div className="text-sm text-muted-foreground">{t("Overall Bac completion")}</div>
           <div className="mt-2 text-4xl font-bold text-gradient">{overall.toFixed(1)}%</div>
-          <Link to="/subjects" className="mt-3 inline-block text-sm text-primary hover:underline">Continue studying →</Link>
+          <Link to="/subjects" className="mt-3 inline-block text-sm text-primary hover:underline">{t("Continue studying →")}</Link>
         </div>
       </Card>
       <Card className="flex flex-col items-center justify-center text-center">
         <motion.div animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="size-20 rounded-full bg-gradient-flame glow-flame flex items-center justify-center">
           <Flame className="size-10 text-primary-foreground" />
         </motion.div>
-        <div className="mt-3 text-3xl font-bold">{st} day{st === 1 ? "" : "s"}</div>
-        <div className="text-sm text-muted-foreground">Study streak · <span className="ar">سلسلة الأيام</span></div>
+        <div className="mt-3 text-3xl font-bold">{st} {t(st === 1 ? "day" : "days")}</div>
+        <div className="text-sm text-muted-foreground">{t("Study streak")}</div>
       </Card>
 
       <Countdown />
@@ -57,18 +58,18 @@ function Dashboard() {
       <Card className="md:col-span-3"><Heatmap activity={s.activity} /></Card>
 
       <Card className="md:col-span-3 overflow-x-auto">
-        <h2 className="font-bold mb-3">Subjects</h2>
+        <h2 className="font-bold mb-3">{t("Subjects")}</h2>
         <table className="w-full text-sm">
-          <thead className="text-muted-foreground text-left"><tr><th className="py-2">Subject</th><th>Coeff</th><th className="w-1/2">Progress</th><th className="text-right">%</th></tr></thead>
+          <thead className="text-muted-foreground text-start"><tr><th className="py-2 text-start">{t("Subject")}</th><th className="text-start">{t("Coeff")}</th><th className="w-1/2 text-start">{t("Progress")}</th><th className="text-end">%</th></tr></thead>
           <tbody>
             {sortedSubjects(s.stream).map((sub) => {
               const p = subjectPct(sub, s.done);
               return (
                 <tr key={sub.id} className="border-t">
-                  <td className="py-3"><div className="font-medium">{sub.en}</div><div className="text-xs text-muted-foreground ar">{sub.ar}</div></td>
+                  <td className="py-3"><div className="font-medium">{lang === "ar" ? sub.ar : sub.en}</div>{lang !== "ar" && <div className="text-xs text-muted-foreground ar">{sub.ar}</div>}</td>
                   <td><span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">×{COEFFS[s.stream][sub.id]}</span></td>
-                  <td className="pr-4"><Bar pct={p} color={sub.color} /></td>
-                  <td className="text-right font-mono">{p.toFixed(0)}</td>
+                  <td className="pe-4"><Bar pct={p} color={sub.color} /></td>
+                  <td className="text-end font-mono">{p.toFixed(0)}</td>
                 </tr>
               );
             })}
@@ -93,6 +94,7 @@ function Ring({ pct }: { pct: number }) {
 function Countdown() {
   const [now, setNow] = useState<number | null>(null);
   const [q, setQ] = useState(0);
+  const { t, lang } = useT();
   useEffect(() => {
     setNow(Date.now());
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -103,18 +105,18 @@ function Countdown() {
   const parts = [[Math.floor(diff / 864e5), "days"], [Math.floor(diff / 36e5) % 24, "hrs"], [Math.floor(diff / 6e4) % 60, "min"], [Math.floor(diff / 1e3) % 60, "sec"]] as const;
   return (
     <Card className="md:col-span-2">
-      <div className="text-sm text-muted-foreground">Countdown to Bac · June 2027 · <span className="ar">العد التنازلي للبكالوريا</span></div>
+      <div className="text-sm text-muted-foreground">{t("Countdown to Bac · June 2027")}</div>
       <div className="mt-3 grid grid-cols-4 gap-2">
         {parts.map(([v, l]) => (
           <div key={l} className="rounded-xl bg-muted p-3 text-center">
             <div className="text-3xl font-bold font-mono">{now === null ? "--" : String(v).padStart(2, "0")}</div>
-            <div className="text-xs text-muted-foreground">{l}</div>
+            <div className="text-xs text-muted-foreground">{t(l)}</div>
           </div>
         ))}
       </div>
       <motion.div key={q} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-4">
         <p className="ar text-lg text-right" dir="rtl">{QUOTES[q]!.ar}</p>
-        <p className="text-sm text-muted-foreground">{QUOTES[q]!.en}</p>
+        {lang !== "ar" && <p className="text-sm text-muted-foreground">{QUOTES[q]!.en}</p>}
       </motion.div>
     </Card>
   );
@@ -123,9 +125,10 @@ function Countdown() {
 function Targets() {
   const s = useAppState();
   const [text, setText] = useState("");
+  const { t } = useT();
   return (
     <Card>
-      <h2 className="font-bold">Today's targets <span className="ar text-xs text-muted-foreground">أهداف اليوم</span></h2>
+      <h2 className="font-bold">{t("Today's targets")}</h2>
       <ul className="mt-3 space-y-2">
         {s.targets.map((t) => (
           <li key={t.id}>
@@ -137,7 +140,7 @@ function Targets() {
         ))}
       </ul>
       <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!text.trim()) return; addTarget(text.trim()); setText(""); }}>
-        <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Add a goal…" className="flex-1 rounded-xl bg-muted px-3 py-2 text-sm outline-none" />
+        <input value={text} onChange={(e) => setText(e.target.value)} placeholder={t("Add a goal…")} className="flex-1 rounded-xl bg-muted px-3 py-2 text-sm outline-none" />
       </form>
     </Card>
   );
@@ -149,10 +152,11 @@ function Heatmap({ activity }: { activity: Record<string, number> }) {
     const end = new Date(); for (const d = new Date(start); d <= end || out.length % 7; d.setDate(d.getDate() + 1)) out.push(today(d));
     return out.slice(-26 * 7);
   }, []);
+  const { t } = useT();
   const lvl = (n: number) => (n === 0 ? "var(--heat-0)" : `color-mix(in oklab, var(--mint) ${Math.min(100, 25 + n * 15)}%, var(--heat-0))`);
   return (
     <>
-      <h2 className="font-bold mb-3">Study consistency <span className="ar text-xs text-muted-foreground">خريطة المراجعة</span></h2>
+      <h2 className="font-bold mb-3">{t("Study consistency")}</h2>
       <div className="grid grid-flow-col grid-rows-7 auto-cols-max gap-1 overflow-x-auto">
         {days.map((d) => <div key={d} title={`${d}: ${activity[d] ?? 0} items`} className="size-3.5 rounded-sm" style={{ background: lvl(activity[d] ?? 0) }} />)}
       </div>
