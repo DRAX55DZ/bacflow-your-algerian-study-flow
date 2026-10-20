@@ -23,6 +23,10 @@ const AR = {
   "Add a friend": "إضافة صديق", Leaderboard: "لوحة الصدارة", "No other students yet — invite your classmates!": "لا يوجد طلاب آخرون بعد — ادعُ زملاءك!",
   Nudge: "تنبيه", you: "أنت", "Invite code copied": "تم نسخ رمز الدعوة",
   "Focus · تركيز": "تركيز", "Break · استراحة": "استراحة", Start: "ابدأ", Pause: "إيقاف", Reset: "إعادة",
+  "Focus (min)": "التركيز (دقيقة)", "Break (min)": "الاستراحة (دقيقة)",
+  "Tip: open the notebook icon at the top to log formulas and mistakes mid-session.": "نصيحة: افتح أيقونة الدفتر في الأعلى لتدوين القوانين والأخطاء.",
+  "Add friends to see their messages.": "أضف أصدقاء لترى رسائلهم.", "No messages yet — say hi 👋": "لا توجد رسائل بعد — قل مرحبا 👋",
+  "Message… (**bold**, _italic_)": "رسالة… (**عريض**، _مائل_)", "Experimental Sciences": "علوم تجريبية", Mathematics: "رياضيات",
   "Group study": "مجموعة المراجعة", "Type a message…": "اكتب رسالة…", Send: "إرسال",
 } as const;
 

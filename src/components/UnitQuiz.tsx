@@ -46,7 +46,7 @@ export function QuizRow({ it, unit, subject }: { it: Item; unit: Unit; subject: 
           <DialogHeader><DialogTitle>{lang === "ar" ? unit.ar : unit.title} — {t("quiz")}</DialogTitle></DialogHeader>
           <p className="text-xs text-muted-foreground">{t("Get 4/5 to mark this unit's quiz as done.")}</p>
           {err && <p className="text-sm text-flame">{err} <button className="underline" onClick={start}>{t("Retry")}</button></p>}
-          {!qs && !err && <div className="flex items-center gap-2 py-8 justify-center text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" /> Writing your questions…</div>}
+          {!qs && !err && <div className="flex items-center gap-2 py-8 justify-center text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" /> {t("Writing your questions…")}</div>}
           {qs && (
             <div className="space-y-4">
               {qs.map((q, i) => (

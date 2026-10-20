@@ -5,6 +5,7 @@ import { BookOpen, FileText, Image, Paperclip, Send } from "lucide-react";
 import { Card } from "@/components/AppShell";
 import { useAppState } from "@/lib/store";
 import { fetchFriends, type Friend } from "@/lib/friends";
+import { useT } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/chat")({
@@ -35,6 +36,7 @@ function Chat() {
   const [room, setRoom] = useState("group");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState("");
+  const { t, lang } = useT();
   const [err, setErr] = useState("");
   const file = useRef<HTMLInputElement>(null);
   const end = useRef<HTMLDivElement>(null);
@@ -74,15 +76,15 @@ function Chat() {
     <div className="grid gap-4 md:grid-cols-[16rem_1fr] md:h-[calc(100vh-11rem)]">
       <Card className="p-2 overflow-auto flex md:block gap-1">
         {rooms.map((r) => (
-          <button key={r.id} onClick={() => setRoom(r.id)} className={`shrink-0 md:w-full rounded-xl p-3 text-left text-sm ${room === r.id ? "bg-accent" : "hover:bg-muted"}`}>
-            <div className="font-medium">{r.name}</div>{r.ar && <div className="ar text-xs text-muted-foreground">{r.ar}</div>}
+          <button key={r.id} onClick={() => setRoom(r.id)} className={`shrink-0 md:w-full rounded-xl p-3 text-start text-sm ${room === r.id ? "bg-accent" : "hover:bg-muted"}`}>
+            <div className="font-medium">{lang === "ar" && r.ar ? r.ar : r.name}</div>{r.ar && lang !== "ar" && <div className="ar text-xs text-muted-foreground">{r.ar}</div>}
           </button>
         ))}
-        {friends.length === 0 && <p className="p-3 text-xs text-muted-foreground">Add friends to see their messages.</p>}
+        {friends.length === 0 && <p className="p-3 text-xs text-muted-foreground">{t("Add friends to see their messages.")}</p>}
       </Card>
       <Card className="flex flex-col p-0 h-[60vh] md:h-auto">
         <div className="flex-1 overflow-auto p-4 space-y-3">
-          {msgs.length === 0 && <p className="text-sm text-muted-foreground">No messages yet — say hi 👋</p>}
+          {msgs.length === 0 && <p className="text-sm text-muted-foreground">{t("No messages yet — say hi 👋")}</p>}
           {msgs.map((m) => {
             const mine = m.sender_id === uid; const I = m.attach_kind ? icon[m.attach_kind] ?? FileText : null;
             return (
@@ -105,7 +107,7 @@ function Chat() {
         <form onSubmit={(e) => { e.preventDefault(); send(); }} className="flex items-center gap-2 border-t p-3">
           <input ref={file} type="file" accept="application/pdf,image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ""; }} />
           <button type="button" title="Attach PDF or image (max 20 MB)" onClick={() => file.current?.click()} className="size-9 flex items-center justify-center rounded-lg hover:bg-muted"><Paperclip className="size-4" /></button>
-          <input dir="auto" value={text} onChange={(e) => setText(e.target.value)} placeholder="Message… (**bold**, _italic_)" className="flex-1 min-w-0 rounded-xl bg-muted px-3 py-2 text-sm outline-none" />
+          <input dir="auto" value={text} onChange={(e) => setText(e.target.value)} placeholder={t("Message… (**bold**, _italic_)")} className="flex-1 min-w-0 rounded-xl bg-muted px-3 py-2 text-sm outline-none" />
           <button className="size-9 flex items-center justify-center rounded-lg bg-gradient-brand text-primary-foreground"><Send className="size-4" /></button>
         </form>
       </Card>
