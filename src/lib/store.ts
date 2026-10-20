@@ -2,12 +2,13 @@ import { useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { itemLabel, type Stream } from "./syllabus";
 import { normalizeTheme, type ThemeId } from "./themes";
+export type Lang = "en" | "ar";
 
 export interface Note { id: string; type: "formula" | "mistake" | "definition"; text: string; at: number }
 export interface Target { id: string; text: string; done: boolean }
 export interface State {
   userId: string | null; ready: boolean; onboarded: boolean; inviteCode: string;
-  name: string; stream: Stream; theme: ThemeId;
+  name: string; stream: Stream; theme: ThemeId; lang: Lang;
   done: Record<string, boolean>;
   activity: Record<string, number>; // yyyy-mm-dd -> items done
   notes: Note[];
@@ -22,7 +23,7 @@ export const doneToday = (doneOn: string | null | undefined, now = new Date()) =
 
 const DEFAULT: State = {
   userId: null, ready: false, onboarded: false, inviteCode: "",
-  name: "", stream: "sci", theme: "cyber", done: {}, activity: {}, notes: [], targets: [],
+  name: "", stream: "sci", theme: "cyber", lang: "en", done: {}, activity: {}, notes: [], targets: [],
 };
 
 let state: State = DEFAULT;
@@ -61,7 +62,7 @@ export async function loadUser(userId: string | null) {
   set(() => ({
     userId, ready: true,
     onboarded: !!prof?.onboarded, inviteCode: prof?.invite_code ?? "",
-    name: prof?.name ?? "", stream: (prof?.stream as Stream) ?? "sci", theme: normalizeTheme(prof?.theme),
+    name: prof?.name ?? "", stream: (prof?.stream as Stream) ?? "sci", theme: normalizeTheme(prof?.theme), lang: prof?.lang === "ar" ? "ar" : "en",
     done: Object.fromEntries((pr.data ?? []).map((r) => [r.item_id, true])),
     activity: Object.fromEntries((a.data ?? []).map((r) => [r.day, r.count])),
     notes: (n.data ?? []).map((r) => ({ id: r.id, type: r.type as Note["type"], text: r.text, at: +new Date(r.created_at) })),
@@ -69,7 +70,7 @@ export async function loadUser(userId: string | null) {
   }));
 }
 
-export async function updateProfile(patch: Partial<Pick<State, "name" | "stream" | "theme" | "onboarded">>) {
+export async function updateProfile(patch: Partial<Pick<State, "name" | "stream" | "theme" | "lang" | "onboarded">>) {
   set((s) => ({ ...s, ...patch }));
   if (state.userId) warn(await supabase.from("profiles").update(patch).eq("id", state.userId));
 }

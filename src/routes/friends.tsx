@@ -6,6 +6,7 @@ import { Bar, Card } from "@/components/AppShell";
 import { fetchEveryone, type Friend } from "@/lib/friends";
 import { overallPct, STREAM_LABEL } from "@/lib/syllabus";
 import { streak, useAppState } from "@/lib/store";
+import { useT } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/friends")({
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/friends")({
 function Friends() {
   const s = useAppState();
   const [toast, setToast] = useState("");
+  const { t } = useT();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [code, setCode] = useState("");
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(""), 2500); };
@@ -47,37 +49,37 @@ function Friends() {
     flash(error ? "Couldn't send" : kind === "nudge" ? `Nudged ${f.name} to study 📣` : `Sent ${kind} to ${f.name}`);
   };
 
-  const me = { id: "me", name: `${s.name} (you)`, stream: s.stream, streak: streak(s.activity), pct: Math.round(overallPct(s.stream, s.done)), last: "", active: true };
+  const me = { id: "me", name: `${s.name} (${t("you")})`, stream: s.stream, streak: streak(s.activity), pct: Math.round(overallPct(s.stream, s.done)), last: "", active: true };
   const board = [...friends, me].sort((a, b) => b.pct - a.pct);
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <div className="space-y-4">
         <Card>
-          <h2 className="font-bold">Your invite code</h2>
-          <p className="text-sm text-muted-foreground mt-1">Share it so friends can add you.</p>
-          <button onClick={() => { navigator.clipboard?.writeText(s.inviteCode); flash("Invite code copied"); }} className="mt-4 flex w-full items-center justify-between rounded-xl border-2 border-dashed border-primary p-4 font-mono text-xl font-bold">
+          <h2 className="font-bold">{t("Your invite code")}</h2>
+          <p className="text-sm text-muted-foreground mt-1">{t("Share it so friends can add you.")}</p>
+          <button onClick={() => { navigator.clipboard?.writeText(s.inviteCode); flash(t("Invite code copied")); }} className="mt-4 flex w-full items-center justify-between rounded-xl border-2 border-dashed border-primary p-4 font-mono text-xl font-bold">
             {s.inviteCode}<Copy className="size-4" />
           </button>
         </Card>
         <Card>
-          <h2 className="font-bold">Add a friend</h2>
+          <h2 className="font-bold">{t("Add a friend")}</h2>
           <form onSubmit={add} className="mt-3 flex gap-2">
             <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="BAC-XXXX" className="flex-1 min-w-0 rounded-xl bg-muted px-3 py-2 font-mono text-sm outline-none focus:ring-2 ring-ring" />
-            <button className="flex items-center gap-1 rounded-xl bg-gradient-brand px-3 text-sm font-medium text-primary-foreground"><UserPlus className="size-4" />Add</button>
+            <button className="flex items-center gap-1 rounded-xl bg-gradient-brand px-3 text-sm font-medium text-primary-foreground"><UserPlus className="size-4" />{t("Add")}</button>
           </form>
         </Card>
       </div>
       <Card className="md:col-span-2">
-        <h2 className="font-bold mb-3">Leaderboard <span className="ar text-xs text-muted-foreground">لوحة الصدارة</span></h2>
-        {friends.length === 0 && <p className="mb-3 text-sm text-muted-foreground">No other students yet — invite your classmates!</p>}
+        <h2 className="font-bold mb-3">{t("Leaderboard")}</h2>
+        {friends.length === 0 && <p className="mb-3 text-sm text-muted-foreground">{t("No other students yet — invite your classmates!")}</p>}
         <ul className="space-y-2">
           {board.map((f, i) => (
             <motion.li layout key={f.id} className={`flex flex-wrap items-center gap-3 rounded-xl p-3 ${f.id === "me" ? "bg-accent" : "bg-muted/50"}`}>
               <span className={`w-6 text-center font-bold ${i === 0 ? "text-flame" : "text-muted-foreground"}`}>{i + 1}</span>
               <div className="size-9 rounded-full bg-gradient-brand flex items-center justify-center text-sm font-bold text-primary-foreground">{f.name[0]}</div>
               <div className="flex-1 min-w-32">
-                <div className="text-sm font-medium">{f.name} <span className="text-xs text-muted-foreground">· {STREAM_LABEL[f.stream].en}</span></div>
+                <div className="text-sm font-medium">{f.name} <span className="text-xs text-muted-foreground">· {t(STREAM_LABEL[f.stream].en)}</span></div>
                 {f.last && <div className="text-xs text-muted-foreground">{f.last}</div>}
                 <div className="mt-1 w-40"><Bar pct={f.pct} color={f.stream === "math" ? "var(--violet)" : "var(--mint)"} /></div>
               </div>
@@ -88,7 +90,7 @@ function Friends() {
                   {["🔥", "👏", "📚", "⚡"].map((e) => (
                     <motion.button whileTap={{ scale: 1.5 }} key={e} onClick={() => send(f as Friend, e)} className="rounded-lg px-1.5 py-1 hover:bg-background">{e}</motion.button>
                   ))}
-                  <button onClick={() => send(f as Friend, "nudge")} className="ml-1 flex items-center gap-1 rounded-lg bg-gradient-flame px-2 py-1 text-xs font-medium text-primary-foreground"><Bell className="size-3" />Nudge</button>
+                  <button onClick={() => send(f as Friend, "nudge")} className="ms-1 flex items-center gap-1 rounded-lg bg-gradient-flame px-2 py-1 text-xs font-medium text-primary-foreground"><Bell className="size-3" />{t("Nudge")}</button>
                 </div>
               )}
             </motion.li>

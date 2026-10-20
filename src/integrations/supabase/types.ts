@@ -50,6 +50,27 @@ export type Database = {
         }
         Relationships: []
       }
+      lessons: {
+        Row: {
+          content: string
+          created_at: string
+          lang: string
+          unit_key: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          lang: string
+          unit_key: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          lang?: string
+          unit_key?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           attach_kind: string | null
@@ -142,6 +163,7 @@ export type Database = {
           created_at: string
           id: string
           invite_code: string
+          lang: string
           last_activity: string
           name: string
           onboarded: boolean
@@ -152,6 +174,7 @@ export type Database = {
           created_at?: string
           id: string
           invite_code?: string
+          lang?: string
           last_activity?: string
           name?: string
           onboarded?: boolean
@@ -162,6 +185,7 @@ export type Database = {
           created_at?: string
           id?: string
           invite_code?: string
+          lang?: string
           last_activity?: string
           name?: string
           onboarded?: boolean
