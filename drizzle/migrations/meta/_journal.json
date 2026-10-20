@@ -29,6 +29,13 @@
       "when": 1792409010061,
       "tag": "0003_targets_done_on",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792496729369,
+      "tag": "0004_lang_and_lessons",
+      "breakpoints": true
     }
   ]
 }
