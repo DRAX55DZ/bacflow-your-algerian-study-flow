@@ -79,7 +79,17 @@ function Focus() {
     } else {
       setMode("work"); setLeft(dur("work")); endAt.current = Date.now() + dur("work") * 1000;
     }
-    if ("Notification" in window && Notification.permission === "granted") new Notification(mode === "work" ? "Break time ☕" : "Back to focus 📚");
+    // A 0-minute next session would end instantly in a loop — pause instead.
+    const nextMode: Mode = mode === "work" ? ((round + 1) % 4 === 0 ? "long" : "break") : "work";
+    if (dur(nextMode) === 0) setRun(false);
+    // Phones don't allow `new Notification()` (it throws), so never let it break the page.
+    try {
+      if ("Notification" in window && Notification.permission === "granted") {
+        const msg = mode === "work" ? "Break time ☕" : "Back to focus 📚";
+        if (navigator.serviceWorker?.controller) void navigator.serviceWorker.ready.then((r) => r.showNotification(msg)).catch(() => {});
+        else new Notification(msg);
+      }
+    } catch { /* unsupported */ }
   };
 
   // Timestamp-based ticking so the timer stays accurate in background tabs.
@@ -119,7 +129,7 @@ function Focus() {
     return () => { ctx.close(); };
   }, [sound]);
 
-  const total = dur(mode);
+  const total = Math.max(1, dur(mode));
   const r = 110, c = 2 * Math.PI * r;
   const reset = () => { setRun(false); setMode("work"); setLeft(work * 60); };
   const start = () => {
@@ -153,7 +163,7 @@ function Focus() {
         <div className="mt-6 flex gap-3">
           <button onClick={start} className="flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-3 font-medium text-primary-foreground glow-violet">{run ? <Pause className="size-4" /> : <Play className="size-4" />}{run ? t("Pause") : t("Start")}</button>
           <button onClick={reset} title={t("Reset")} className="rounded-full bg-muted p-3"><RotateCcw className="size-4" /></button>
-          <button onClick={() => { setLeft(0); if (!run) finish(); }} title={t("Skip")} className="rounded-full bg-muted p-3"><SkipForward className="size-4" /></button>
+          <button onClick={() => finish()} title={t("Skip")} className="rounded-full bg-muted p-3"><SkipForward className="size-4" /></button>
         </div>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button onClick={() => setSound(null)} className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs ${!sound ? "bg-primary text-primary-foreground" : "bg-muted"}`}><VolumeX className="size-3" />{t("Silent")}</button>
