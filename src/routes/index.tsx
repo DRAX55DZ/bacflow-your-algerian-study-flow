@@ -50,6 +50,7 @@ function Dashboard() {
         </motion.div>
         <div className="mt-3 text-3xl font-bold">{st} {t(st === 1 ? "day" : "days")}</div>
         <div className="text-sm text-muted-foreground">{t("Study streak")}</div>
+        <StreakExtras activity={s.activity} st={st} />
       </Card>
 
       <Countdown />
