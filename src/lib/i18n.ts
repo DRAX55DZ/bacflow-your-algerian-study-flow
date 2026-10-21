@@ -7,6 +7,7 @@ const AR = {
   "Nothing yet — capture formulas and tricky mistakes as you study.": "لا شيء بعد — دوّن القوانين والأخطاء أثناء المراجعة.",
   "Overall Bac completion": "نسبة التحضير الإجمالية", "Continue studying →": "← واصل المراجعة",
   day: "يوم", days: "أيام", "Study streak": "سلسلة الأيام", "Countdown to Bac · June 2027": "العد التنازلي للبكالوريا · جوان 2027",
+  "✓ Studied today — streak safe": "✓ درست اليوم — السلسلة محفوظة", "Tick one item today to keep your streak": "أنجز عنصرًا واحدًا اليوم للحفاظ على سلسلتك", Best: "الأفضل", "Next goal": "الهدف التالي",
   hrs: "ساعة", min: "دقيقة", sec: "ثانية", "Today's targets": "أهداف اليوم", "Add a goal…": "أضف هدفا…",
   "Study consistency": "خريطة المراجعة", Subjects: "المواد", Subject: "المادة", Coeff: "المعامل", Progress: "التقدم",
   "Past Bac papers": "مواضيع البكالوريا", "Share to group chat": "مشاركة في الدردشة", Lesson: "الدرس", Summary: "الملخص",

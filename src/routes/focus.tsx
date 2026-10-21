@@ -58,6 +58,7 @@ function Focus() {
   const [sound, setSound] = useState<Sound>(null);
   const [round, setRound] = useState(0);
   const [stats, setStats] = useState<Record<string, { sessions: number; minutes: number }>>({});
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const endAt = useRef<number | null>(null);
   const audio = useRef<AudioContext | null>(null);
 
@@ -179,7 +180,9 @@ function Focus() {
           {([["Focus (min)", work, setWork, "work"], ["Break (min)", brk, setBrk, "break"]] as const).map(([l, v, set, m]) => (
             <label key={l} className="mt-4 block text-sm">
               <span className="text-muted-foreground">{t(l)}</span>
-              <input type="number" min={1} max={180} value={v} onChange={(e) => { const n = Math.min(180, Math.max(1, +e.target.value || 1)); set(n); if (!run && mode === m) setLeft(n * 60); }} className="mt-1 w-full rounded-xl bg-muted px-3 py-2 outline-none" />
+              <input type="number" inputMode="numeric" min={0} max={180} value={v === 0 && drafts[m] === "" ? "" : v}
+                onChange={(e) => { const raw = e.target.value; setDrafts((x) => ({ ...x, [m]: raw })); const n = Math.min(180, Math.max(0, Math.floor(+raw) || 0)); set(n); if (!run && (mode === m || (m === "break" && mode === "long"))) setLeft((m === "break" && mode === "long" ? n * 3 : n) * 60); }}
+                className="mt-1 w-full rounded-xl bg-muted px-3 py-2 outline-none" />
             </label>
           ))}
           <p className="mt-4 text-xs text-muted-foreground">{t("Every 4th break is a long break. Tip: open the notebook icon at the top to log formulas mid-session.")}</p>
