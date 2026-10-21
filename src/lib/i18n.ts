@@ -28,6 +28,11 @@ const AR = {
   "Add friends to see their messages.": "أضف أصدقاء لترى رسائلهم.", "No messages yet — say hi 👋": "لا توجد رسائل بعد — قل مرحبا 👋",
   "Message… (**bold**, _italic_)": "رسالة… (**عريض**، _مائل_)", "Experimental Sciences": "علوم تجريبية", Mathematics: "رياضيات",
   "Group study": "مجموعة المراجعة", "Type a message…": "اكتب رسالة…", Send: "إرسال",
+  "Short break": "استراحة قصيرة", "Long break": "استراحة طويلة", Skip: "تخطي", Silent: "صامت", Rain: "مطر",
+  "Brown noise": "ضجيج هادئ", "Café": "مقهى", Today: "اليوم", sessions: "جلسات", "minutes focused": "دقائق تركيز",
+  "Every 4th break is a long break. Tip: open the notebook icon at the top to log formulas mid-session.": "كل استراحة رابعة طويلة. نصيحة: افتح أيقونة الدفتر لتدوين القوانين.",
+  Email: "البريد الإلكتروني", Password: "كلمة المرور", "Sign in": "تسجيل الدخول", "Sign up": "إنشاء حساب",
+  "Continue with Google": "المتابعة عبر Google",
 } as const;
 
 export type Key = keyof typeof AR;
