@@ -145,10 +145,10 @@ if (typeof window !== "undefined") window.addEventListener("online", () => { voi
 
 /** Longest run of consecutive study days ever logged. */
 export function bestStreak(activity: Record<string, number>) {
-  const days = Object.keys(activity).filter((k) => activity[k] > 0).sort();
+  const days = Object.keys(activity).filter((k) => (activity[k] ?? 0) > 0).sort();
   let best = 0, run = 0, prev: number | null = null;
   for (const k of days) {
-    const [y, m, d] = k.split("-").map(Number); const n = Date.UTC(y, m - 1, d) / 86400000;
+    const n = Date.parse(`${k}T00:00:00Z`) / 86400000;
     run = prev !== null && n - prev === 1 ? run + 1 : 1; prev = n; best = Math.max(best, run);
   }
   return best;
