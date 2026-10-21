@@ -58,6 +58,7 @@ function Focus() {
   const [sound, setSound] = useState<Sound>(null);
   const [round, setRound] = useState(0);
   const [stats, setStats] = useState<Record<string, { sessions: number; minutes: number }>>({});
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const endAt = useRef<number | null>(null);
   const audio = useRef<AudioContext | null>(null);
 
@@ -78,7 +79,17 @@ function Focus() {
     } else {
       setMode("work"); setLeft(dur("work")); endAt.current = Date.now() + dur("work") * 1000;
     }
-    if ("Notification" in window && Notification.permission === "granted") new Notification(mode === "work" ? "Break time ☕" : "Back to focus 📚");
+    // A 0-minute next session would end instantly in a loop — pause instead.
+    const nextMode: Mode = mode === "work" ? ((round + 1) % 4 === 0 ? "long" : "break") : "work";
+    if (dur(nextMode) === 0) setRun(false);
+    // Phones don't allow `new Notification()` (it throws), so never let it break the page.
+    try {
+      if ("Notification" in window && Notification.permission === "granted") {
+        const msg = mode === "work" ? "Break time ☕" : "Back to focus 📚";
+        if (navigator.serviceWorker?.controller) void navigator.serviceWorker.ready.then((r) => r.showNotification(msg)).catch(() => {});
+        else new Notification(msg);
+      }
+    } catch { /* unsupported */ }
   };
 
   // Timestamp-based ticking so the timer stays accurate in background tabs.
@@ -118,7 +129,7 @@ function Focus() {
     return () => { ctx.close(); };
   }, [sound]);
 
-  const total = dur(mode);
+  const total = Math.max(1, dur(mode));
   const r = 110, c = 2 * Math.PI * r;
   const reset = () => { setRun(false); setMode("work"); setLeft(work * 60); };
   const start = () => {
@@ -152,7 +163,7 @@ function Focus() {
         <div className="mt-6 flex gap-3">
           <button onClick={start} className="flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-3 font-medium text-primary-foreground glow-violet">{run ? <Pause className="size-4" /> : <Play className="size-4" />}{run ? t("Pause") : t("Start")}</button>
           <button onClick={reset} title={t("Reset")} className="rounded-full bg-muted p-3"><RotateCcw className="size-4" /></button>
-          <button onClick={() => { setLeft(0); if (!run) finish(); }} title={t("Skip")} className="rounded-full bg-muted p-3"><SkipForward className="size-4" /></button>
+          <button onClick={() => finish()} title={t("Skip")} className="rounded-full bg-muted p-3"><SkipForward className="size-4" /></button>
         </div>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button onClick={() => setSound(null)} className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs ${!sound ? "bg-primary text-primary-foreground" : "bg-muted"}`}><VolumeX className="size-3" />{t("Silent")}</button>
@@ -179,7 +190,9 @@ function Focus() {
           {([["Focus (min)", work, setWork, "work"], ["Break (min)", brk, setBrk, "break"]] as const).map(([l, v, set, m]) => (
             <label key={l} className="mt-4 block text-sm">
               <span className="text-muted-foreground">{t(l)}</span>
-              <input type="number" min={1} max={180} value={v} onChange={(e) => { const n = Math.min(180, Math.max(1, +e.target.value || 1)); set(n); if (!run && mode === m) setLeft(n * 60); }} className="mt-1 w-full rounded-xl bg-muted px-3 py-2 outline-none" />
+              <input type="number" inputMode="numeric" min={0} max={180} value={v === 0 && drafts[m] === "" ? "" : v}
+                onChange={(e) => { const raw = e.target.value; setDrafts((x) => ({ ...x, [m]: raw })); const n = Math.min(180, Math.max(0, Math.floor(+raw) || 0)); set(n); if (!run && (mode === m || (m === "break" && mode === "long"))) setLeft((m === "break" && mode === "long" ? n * 3 : n) * 60); }}
+                className="mt-1 w-full rounded-xl bg-muted px-3 py-2 outline-none" />
             </label>
           ))}
           <p className="mt-4 text-xs text-muted-foreground">{t("Every 4th break is a long break. Tip: open the notebook icon at the top to log formulas mid-session.")}</p>
