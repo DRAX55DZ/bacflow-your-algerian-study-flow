@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Check, Flame } from "lucide-react";
 import { Bar, Card } from "@/components/AppShell";
-import { addTarget, toggleTarget, streak, today, useAppState } from "@/lib/store";
+import { addTarget, bestStreak, toggleTarget, streak, today, useAppState } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { COEFFS, overallPct, sortedSubjects, subjectPct } from "@/lib/syllabus";
 
@@ -77,6 +77,30 @@ function Dashboard() {
           </tbody>
         </table>
       </Card>
+    </div>
+  );
+}
+
+const GOALS = [3, 7, 14, 30, 60, 100, 200, 365];
+function StreakExtras({ activity, st }: { activity: Record<string, number>; st: number }) {
+  const { t } = useT();
+  const [week, setWeek] = useState<{ k: string; on: boolean }[]>([]);
+  useEffect(() => {
+    const out: { k: string; on: boolean }[] = [];
+    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const k = today(d); out.push({ k, on: (activity[k] ?? 0) > 0 }); }
+    setWeek(out);
+  }, [activity]);
+  const studied = week.length ? week[6]!.on : false;
+  const best = Math.max(bestStreak(activity), st);
+  const goal = GOALS.find((g) => g > st) ?? st + 100;
+  return (
+    <div className="mt-3 w-full space-y-2">
+      <div className="flex justify-center gap-1.5">
+        {week.map((w) => <Flame key={w.k} className={`size-4 ${w.on ? "text-flame" : "text-muted-foreground opacity-30"}`} />)}
+      </div>
+      <div className={`text-xs ${studied ? "text-mint" : "text-muted-foreground"}`}>{t(studied ? "✓ Studied today — streak safe" : "Tick one item today to keep your streak")}</div>
+      <div className="flex justify-between text-xs text-muted-foreground"><span>{t("Best")}: {best}</span><span>{t("Next goal")}: {goal}</span></div>
+      <Bar pct={(st / goal) * 100} />
     </div>
   );
 }
