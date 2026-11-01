@@ -36,6 +36,20 @@
       "when": 1792496729369,
       "tag": "0004_lang_and_lessons",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793571876993,
+      "tag": "0005_scope_global_reads",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793571908899,
+      "tag": "0006_lock_retired_lessons",
+      "breakpoints": true
     }
   ]
 }
