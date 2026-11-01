@@ -16,7 +16,7 @@ const AR = {
   "Get 4/5 to mark this unit's quiz as done.": "احصل على 4/5 لإتمام اختبار هذه الوحدة.", Retry: "إعادة",
   "Writing your questions…": "جارٍ إعداد الأسئلة…", "Submit answers": "إرسال الإجابات", "Passed!": "نجحت!",
   "Not yet, review the lesson and retry.": "ليس بعد، راجع الدرس وأعد المحاولة.", "New quiz": "اختبار جديد",
-  "Official lesson": "الدرس الرسمي", "Writing the lesson…": "جارٍ كتابة الدرس…",
+  "Official lesson": "الدرس الرسمي", "Official exercises": "تمارين رسمية", "Unit test — official Bac exercises": "اختبار الوحدة — تمارين البكالوريا الرسمية", "Quick add": "إضافة سريعة", "All done! +50 bonus XP": "أنجزت كل شيء! +50 نقطة إضافية", "XP today": "نقاط اليوم", "Delete": "حذف", "Solve 1 past Bac paper": "حل موضوع بكالوريا سابق", "Review 1 lesson summary": "راجع ملخص درس", "Do 3 exercises": "حل 3 تمارين", "2 focus sessions (25 min)": "جلستا تركيز (25 دقيقة)", "Learn 5 formulas": "احفظ 5 قوانين", "Fix 1 past mistake": "صحح خطأ سابقا", "Writing the lesson…": "جارٍ كتابة الدرس…",
   "Follows the official Algerian Bac program. Written by AI — check with your teacher.": "وفق المنهاج الرسمي للبكالوريا الجزائرية. مكتوب بالذكاء الاصطناعي — تحقق مع أستاذك.",
   Theme: "المظهر", "Saved to your account and synced across devices.": "يُحفظ في حسابك ويتزامن بين أجهزتك.",
   Language: "اللغة", "Choose the language of the whole app.": "اختر لغة التطبيق بالكامل.",
