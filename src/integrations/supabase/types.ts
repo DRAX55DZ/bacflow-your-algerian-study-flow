@@ -245,6 +245,17 @@ export type Database = {
     }
     Functions: {
       add_friend: { Args: { _code: string }; Returns: Json }
+      global_leaderboard: {
+        Args: never
+        Returns: {
+          days: Json
+          id: string
+          items: string[]
+          last_activity: string
+          name: string
+          stream: string
+        }[]
+      }
       is_friend: { Args: { _other: string }; Returns: boolean }
     }
     Enums: {
