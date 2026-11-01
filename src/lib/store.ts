@@ -112,6 +112,17 @@ export async function toggleTarget(id: string) {
   warn(await supabase.from("targets").update({ done: !t.done, done_on: t.done ? null : today() }).eq("id", id));
 }
 
+export async function deleteTarget(id: string) {
+  set((s) => ({ ...s, targets: s.targets.filter((x) => x.id !== id) }));
+  warn(await supabase.from("targets").delete().eq("id", id));
+}
+export const TARGET_XP = 20, ALL_DONE_BONUS = 50;
+/** XP earned today from daily targets: 20 each, +50 when every target is done. */
+export const targetXp = (ts: { done: boolean }[]) => {
+  const d = ts.filter((x) => x.done).length;
+  return d * TARGET_XP + (ts.length > 0 && d === ts.length ? ALL_DONE_BONUS : 0);
+};
+
 /** Untick every daily target once the clock passes midnight while the app is open. */
 if (typeof window !== "undefined") {
   let day = today();

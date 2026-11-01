@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Check, Flame } from "lucide-react";
+import { Check, Flame, Plus, Trash2 } from "lucide-react";
 import { Bar, Card } from "@/components/AppShell";
-import { addTarget, bestStreak, toggleTarget, streak, today, useAppState } from "@/lib/store";
+import { addTarget, deleteTarget, targetXp, bestStreak, toggleTarget, streak, today, useAppState } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { COEFFS, overallPct, sortedSubjects, subjectPct } from "@/lib/syllabus";
 
@@ -147,26 +147,58 @@ function Countdown() {
   );
 }
 
+const PRESETS = ["Solve 1 past Bac paper", "Do 3 exercises", "Review 1 lesson summary", "2 focus sessions (25 min)", "Learn 5 formulas", "Fix 1 past mistake"];
+
 function Targets() {
   const s = useAppState();
   const [text, setText] = useState("");
   const { t } = useT();
+  const done = s.targets.filter((x) => x.done).length;
+  const total = s.targets.length;
+  const xp = targetXp(s.targets);
+  const all = total > 0 && done === total;
+  const tick = (id: string, wasDone: boolean) => {
+    toggleTarget(id);
+    if (wasDone) return;
+    if (done + 1 === total) { confetti({ particleCount: 200, spread: 120, origin: { y: 0.5 } }); setTimeout(() => confetti({ particleCount: 120, angle: 60, spread: 70, origin: { x: 0 } }), 250); setTimeout(() => confetti({ particleCount: 120, angle: 120, spread: 70, origin: { x: 1 } }), 400); }
+    else confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
+  };
+  const unused = PRESETS.filter((p) => !s.targets.some((x) => x.text === t(p) || x.text === p));
   return (
     <Card>
-      <h2 className="font-bold">{t("Today's targets")}</h2>
-      <ul className="mt-3 space-y-2">
-        {s.targets.map((t) => (
-          <li key={t.id}>
-            <button onClick={() => { if (!t.done) confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } }); toggleTarget(t.id); }} className="flex w-full items-center gap-3 rounded-xl p-2 text-left text-sm hover:bg-muted">
-              <span className={`size-5 shrink-0 rounded-md border-2 flex items-center justify-center ${t.done ? "bg-mint border-mint" : "border-muted-foreground"}`}>{t.done && <Check className="size-3 text-background" />}</span>
-              <span className={t.done ? "line-through text-muted-foreground" : ""}>{t.text}</span>
-            </button>
-          </li>
-        ))}
+      <div className="flex items-center gap-2">
+        <h2 className="font-bold">{t("Today's targets")}</h2>
+        <motion.span key={xp} initial={{ scale: 1.4 }} animate={{ scale: 1 }} className="ms-auto rounded-full bg-flame/20 px-2.5 py-0.5 text-xs font-bold text-flame">⚡ {xp} {t("XP today")}</motion.span>
+      </div>
+      <div className="mt-3 flex items-center gap-3">
+        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted"><motion.div animate={{ width: total ? `${(done / total) * 100}%` : "0%" }} className="h-full bg-gradient-brand" /></div>
+        <span className="font-mono text-xs">{done}/{total}</span>
+      </div>
+      {all && <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="mt-2 text-sm font-semibold text-mint">🏆 {t("All done! +50 bonus XP")}</motion.p>}
+      <ul className="mt-3 space-y-1">
+        <AnimatePresence initial={false}>
+          {s.targets.map((x) => (
+            <motion.li key={x.id} layout initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} className="group flex items-center gap-1">
+              <button onClick={() => tick(x.id, x.done)} className="flex flex-1 items-center gap-3 rounded-xl p-2 text-left text-sm hover:bg-muted">
+                <span className={`size-5 shrink-0 rounded-md border-2 flex items-center justify-center ${x.done ? "bg-mint border-mint" : "border-muted-foreground"}`}>{x.done && <Check className="size-3 text-background" />}</span>
+                <span dir="auto" className={x.done ? "line-through text-muted-foreground" : ""}>{x.text}</span>
+                <span className={`ms-auto text-[10px] font-bold ${x.done ? "text-mint" : "text-muted-foreground"}`}>+20</span>
+              </button>
+              <button onClick={() => deleteTarget(x.id)} aria-label={t("Delete")} className="size-8 shrink-0 rounded-lg text-muted-foreground hover:bg-muted hover:text-flame flex items-center justify-center"><Trash2 className="size-3.5" /></button>
+            </motion.li>
+          ))}
+        </AnimatePresence>
       </ul>
       <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!text.trim()) return; addTarget(text.trim()); setText(""); }}>
         <input value={text} onChange={(e) => setText(e.target.value)} placeholder={t("Add a goal…")} className="flex-1 rounded-xl bg-muted px-3 py-2 text-sm outline-none" />
+        <button type="submit" aria-label={t("Add a goal…")} className="rounded-xl bg-primary px-3 text-primary-foreground"><Plus className="size-4" /></button>
       </form>
+      {unused.length > 0 && (
+        <div className="mt-3">
+          <div className="mb-1.5 text-xs text-muted-foreground">{t("Quick add")}</div>
+          <div className="flex flex-wrap gap-1.5">{unused.map((p) => <button key={p} onClick={() => addTarget(t(p))} className="rounded-full border px-2.5 py-1 text-xs hover:bg-muted">+ {t(p)}</button>)}</div>
+        </div>
+      )}
     </Card>
   );
 }

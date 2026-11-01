@@ -7,7 +7,6 @@ import { Bar, Card } from "@/components/AppShell";
 import { getState, toggleItem, useAppState } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { COEFFS, sortedSubjects, subjectPct, type Item, type ItemKind, type Unit } from "@/lib/syllabus";
-import { QuizRow } from "@/components/UnitQuiz";
 import { LessonButton } from "@/components/UnitLesson";
 import { useT } from "@/lib/i18n";
 
@@ -98,7 +97,7 @@ function UnitBox({ unit, subject, n }: { unit: Unit; subject: string; n: number 
         <button onClick={share} title={t("Share to group chat")} className="size-8 flex items-center justify-center rounded-lg hover:bg-muted"><Share2 className="size-4" /></button>
       </div>
       <LessonButton unit={unit} subject={subject} />
-      {unit.items.map((it) => (it.kind === "quiz" ? <QuizRow key={it.id} it={it} unit={unit} subject={subject} /> : <Row key={it.id} it={it} />))}
+      {unit.items.map((it) => <Row key={it.id} it={it} />)}
     </div>
   );
 }
