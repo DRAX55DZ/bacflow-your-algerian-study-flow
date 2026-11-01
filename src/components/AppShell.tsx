@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LogOut, LayoutDashboard, BookOpen, Users, MessageCircle, Timer, Settings, NotebookPen, Flame, X } from "lucide-react";
+import { LogOut, LayoutDashboard, BookOpen, Users, MessageCircle, Timer, Settings, NotebookPen, Flame, X, GraduationCap } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { addNote, deleteNote, streak, updateProfile, useAppState, type Note } from "@/lib/store";

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as FocusRouteImport } from './routes/focus'
 import { Route as FriendsRouteImport } from './routes/friends'
+import { Route as GuideRouteImport } from './routes/guide'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SubjectsRouteImport } from './routes/subjects'
 
@@ -36,6 +37,11 @@ const FriendsRoute = FriendsRouteImport.update({
   path: '/friends',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuideRoute = GuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/focus': typeof FocusRoute
   '/friends': typeof FriendsRoute
+  '/guide': typeof GuideRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/focus': typeof FocusRoute
   '/friends': typeof FriendsRoute
+  '/guide': typeof GuideRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
 }
@@ -69,20 +77,24 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/focus': typeof FocusRoute
   '/friends': typeof FriendsRoute
+  '/guide': typeof GuideRoute
   '/settings': typeof SettingsRoute
   '/subjects': typeof SubjectsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/chat' | '/focus' | '/friends' | '/settings' | '/subjects'
+  fullPaths:
+    '/' | '/chat' | '/focus' | '/friends' | '/guide' | '/settings' | '/subjects'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chat' | '/focus' | '/friends' | '/settings' | '/subjects'
+  to:
+    '/' | '/chat' | '/focus' | '/friends' | '/guide' | '/settings' | '/subjects'
   id:
     | '__root__'
     | '/'
     | '/chat'
     | '/focus'
     | '/friends'
+    | '/guide'
     | '/settings'
     | '/subjects'
   fileRoutesById: FileRoutesById
@@ -92,6 +104,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   FocusRoute: typeof FocusRoute
   FriendsRoute: typeof FriendsRoute
+  GuideRoute: typeof GuideRoute
   SettingsRoute: typeof SettingsRoute
   SubjectsRoute: typeof SubjectsRoute
 }
@@ -126,6 +139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FriendsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guide': {
+      id: '/guide'
+      path: '/guide'
+      fullPath: '/guide'
+      preLoaderRoute: typeof GuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -148,6 +168,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   FocusRoute: FocusRoute,
   FriendsRoute: FriendsRoute,
+  GuideRoute: GuideRoute,
   SettingsRoute: SettingsRoute,
   SubjectsRoute: SubjectsRoute,
 }
