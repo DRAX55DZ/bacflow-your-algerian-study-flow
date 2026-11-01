@@ -16,3 +16,11 @@ describe("unit quizzes", () => {
       for (const s of subjectsFor(st)) for (const u of s.units) expect(u.items.some((i) => i.kind === "quiz")).toBe(true);
   });
 });
+
+import { targetXp } from "@/lib/store";
+describe("target rewards", () => {
+  it("20 XP per target, +50 when all done", () => {
+    expect(targetXp([{ done: true }, { done: false }])).toBe(20);
+    expect(targetXp([{ done: true }, { done: true }])).toBe(90);
+  });
+});

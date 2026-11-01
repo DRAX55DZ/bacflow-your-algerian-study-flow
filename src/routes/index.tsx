@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Check, Flame } from "lucide-react";
+import { Check, Flame, Plus, Trash2 } from "lucide-react";
 import { Bar, Card } from "@/components/AppShell";
 import { addTarget, deleteTarget, targetXp, bestStreak, toggleTarget, streak, today, useAppState } from "@/lib/store";
 import { useT } from "@/lib/i18n";
