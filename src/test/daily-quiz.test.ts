@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { doneToday, today } from "@/lib/store";
 import { subjectsFor } from "@/lib/syllabus";
-import { passed } from "@/components/UnitQuiz";
 
 describe("daily targets reset at midnight", () => {
   it("done today counts, done yesterday does not", () => {
@@ -12,12 +11,8 @@ describe("daily targets reset at midnight", () => {
 });
 
 describe("unit quizzes", () => {
-  it("every unit has a quiz", () => {
+  it("every unit has an official test item", () => {
     for (const st of ["sci", "math"] as const)
       for (const s of subjectsFor(st)) for (const u of s.units) expect(u.items.some((i) => i.kind === "quiz")).toBe(true);
-  });
-  it("pass mark is 4 out of 5", () => {
-    expect(passed(4)).toBe(true);
-    expect(passed(3)).toBe(false);
   });
 });

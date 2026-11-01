@@ -72,7 +72,7 @@ function build(stream: Stream): Subject[] {
             { id: `${uid}-e1`, kind: "exercise", title: "Exercises", difficulty: "easy" },
             { id: `${uid}-e2`, kind: "exercise", title: "Exercises", difficulty: "medium" },
             { id: `${uid}-e3`, kind: "exercise", title: "Exercises", difficulty: "hard" },
-            { id: `${uid}-q`, kind: "quiz", title: "Unit quiz" },
+            { id: `${uid}-q`, kind: "quiz", title: "Unit test — official Bac exercises" },
           ],
         };
       }),
