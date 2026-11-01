@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LogOut, LayoutDashboard, BookOpen, Users, MessageCircle, Timer, Settings, NotebookPen, Flame, X } from "lucide-react";
+import { LogOut, LayoutDashboard, BookOpen, Users, MessageCircle, Timer, Settings, NotebookPen, Flame, X, GraduationCap } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { addNote, deleteNote, streak, updateProfile, useAppState, type Note } from "@/lib/store";
@@ -11,6 +11,7 @@ import { useT } from "@/lib/i18n";
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/subjects", label: "Syllabus", icon: BookOpen },
+  { to: "/guide", label: "Study Guide", icon: GraduationCap },
   { to: "/friends", label: "Friends", icon: Users },
   { to: "/chat", label: "Chat", icon: MessageCircle },
   { to: "/focus", label: "Focus", icon: Timer },

@@ -1,7 +1,7 @@
 import { useAppState, type Lang } from "./store";
 
 const AR = {
-  Dashboard: "الرئيسية", Syllabus: "المنهاج", Friends: "الأصدقاء", Chat: "الدردشة", Focus: "التركيز", Settings: "الإعدادات",
+  Dashboard: "الرئيسية", Syllabus: "المنهاج", "Study Guide": "دليل المراجعة", Friends: "الأصدقاء", Chat: "الدردشة", Focus: "التركيز", Settings: "الإعدادات",
   "Sign out": "تسجيل الخروج", "Formula & mistake log": "سجل القوانين والأخطاء", "Formula & Mistake Log": "سجل القوانين والأخطاء",
   formula: "قانون", definition: "تعريف", mistake: "خطأ", Add: "إضافة",
   "Nothing yet — capture formulas and tricky mistakes as you study.": "لا شيء بعد — دوّن القوانين والأخطاء أثناء المراجعة.",
