@@ -11,6 +11,7 @@ import { useT } from "@/lib/i18n";
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/subjects", label: "Syllabus", icon: BookOpen },
+  { to: "/guide", label: "Study Guide", icon: GraduationCap },
   { to: "/friends", label: "Friends", icon: Users },
   { to: "/chat", label: "Chat", icon: MessageCircle },
   { to: "/focus", label: "Focus", icon: Timer },
