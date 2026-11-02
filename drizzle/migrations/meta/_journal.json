@@ -50,6 +50,13 @@
       "when": 1793571908899,
       "tag": "0006_lock_retired_lessons",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793619789916,
+      "tag": "0007_goals_count_as_streak",
+      "breakpoints": true
     }
   ]
 }
