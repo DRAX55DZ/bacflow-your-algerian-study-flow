@@ -11,6 +11,7 @@ export interface State {
   name: string; stream: Stream; theme: ThemeId; lang: Lang;
   done: Record<string, boolean>;
   activity: Record<string, number>; // yyyy-mm-dd -> items done
+  allDone: Record<string, boolean>; // yyyy-mm-dd -> every daily target finished
   notes: Note[];
   targets: Target[];
 }
@@ -23,7 +24,7 @@ export const doneToday = (doneOn: string | null | undefined, now = new Date()) =
 
 const DEFAULT: State = {
   userId: null, ready: false, onboarded: false, inviteCode: "",
-  name: "", stream: "sci", theme: "cyber", lang: "en", done: {}, activity: {}, notes: [], targets: [],
+  name: "", stream: "sci", theme: "cyber", lang: "en", done: {}, activity: {}, allDone: {}, notes: [], targets: [],
 };
 
 let state: State = DEFAULT;
@@ -54,7 +55,7 @@ export async function loadUser(userId: string | null) {
   const [p, pr, a, n, t] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("progress").select("item_id").eq("user_id", userId),
-    supabase.from("activity").select("day,count").eq("user_id", userId),
+    supabase.from("activity").select("day,count,all_done").eq("user_id", userId),
     supabase.from("notes").select("*").order("created_at", { ascending: false }),
     supabase.from("targets").select("*").order("created_at"),
   ]);
@@ -65,6 +66,7 @@ export async function loadUser(userId: string | null) {
     name: prof?.name ?? "", stream: (prof?.stream as Stream) ?? "sci", theme: normalizeTheme(prof?.theme), lang: prof?.lang === "ar" ? "ar" : "en",
     done: Object.fromEntries((pr.data ?? []).map((r) => [r.item_id, true])),
     activity: Object.fromEntries((a.data ?? []).map((r) => [r.day, r.count])),
+    allDone: Object.fromEntries((a.data ?? []).filter((r) => r.all_done).map((r) => [r.day, true])),
     notes: (n.data ?? []).map((r) => ({ id: r.id, type: r.type as Note["type"], text: r.text, at: +new Date(r.created_at) })),
     targets: (t.data ?? []).map((r) => ({ id: r.id, text: r.text, done: doneToday(r.done_on) })),
   }));
@@ -110,6 +112,16 @@ export async function toggleTarget(id: string) {
   const t = state.targets.find((x) => x.id === id); if (!t) return;
   set((s) => ({ ...s, targets: s.targets.map((y) => (y.id === id ? { ...y, done: !y.done } : y)) }));
   warn(await supabase.from("targets").update({ done: !t.done, done_on: t.done ? null : today() }).eq("id", id));
+  if (!t.done && state.targets.length > 0 && state.targets.every((x) => x.done)) await markGoalsDay();
+}
+
+/** Finishing every daily target earns the day for your streak, even with no syllabus ticks. */
+export async function markGoalsDay() {
+  const uid = state.userId; if (!uid) return;
+  const d = today();
+  if (state.allDone[d]) return;
+  set((s) => ({ ...s, allDone: { ...s.allDone, [d]: true } }));
+  warn(await supabase.from("activity").upsert({ user_id: uid, day: d, all_done: true }));
 }
 
 export async function deleteTarget(id: string) {
@@ -132,12 +144,16 @@ if (typeof window !== "undefined") {
   }, 30_000);
 }
 
+/** A day counts if any syllabus item was ticked, or every daily target was finished. */
+export const studiedOn = (activity: Record<string, number>, goalsDone: Record<string, boolean>, day: string) =>
+  (activity[day] ?? 0) > 0 || !!goalsDone[day];
+
 /** Consecutive study days ending today (or yesterday if nothing logged yet today). */
-export function streak(activity: Record<string, number>) {
+export function streak(activity: Record<string, number>, goalsDone: Record<string, boolean> = {}) {
   const d = new Date();
-  if (!activity[today(d)]) d.setDate(d.getDate() - 1);
+  if (!studiedOn(activity, goalsDone, today(d))) d.setDate(d.getDate() - 1);
   let n = 0;
-  while (activity[today(d)]) { n++; d.setDate(d.getDate() - 1); }
+  while (studiedOn(activity, goalsDone, today(d))) { n++; d.setDate(d.getDate() - 1); }
   return n;
 }
 
@@ -155,8 +171,9 @@ export async function flushPending(uid = state.userId) {
 if (typeof window !== "undefined") window.addEventListener("online", () => { void flushPending(); });
 
 /** Longest run of consecutive study days ever logged. */
-export function bestStreak(activity: Record<string, number>) {
-  const days = Object.keys(activity).filter((k) => (activity[k] ?? 0) > 0).sort();
+export function bestStreak(activity: Record<string, number>, goalsDone: Record<string, boolean> = {}) {
+  const days = Array.from(new Set([...Object.keys(activity), ...Object.keys(goalsDone)]))
+    .filter((k) => studiedOn(activity, goalsDone, k)).sort();
   let best = 0, run = 0, prev: number | null = null;
   for (const k of days) {
     const n = Date.parse(`${k}T00:00:00Z`) / 86400000;
