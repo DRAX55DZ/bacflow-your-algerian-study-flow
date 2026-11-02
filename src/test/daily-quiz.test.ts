@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { doneToday, today } from "@/lib/store";
+import { bestStreak, doneToday, streak, today } from "@/lib/store";
 import { subjectsFor } from "@/lib/syllabus";
 
 describe("daily targets reset at midnight", () => {
@@ -22,5 +22,19 @@ describe("target rewards", () => {
   it("20 XP per target, +50 when all done", () => {
     expect(targetXp([{ done: true }, { done: false }])).toBe(20);
     expect(targetXp([{ done: true }, { done: true }])).toBe(90);
+  });
+});
+
+describe("streak counts finished-goal days", () => {
+  const d = (n: number) => today(new Date(Date.now() - n * 864e5));
+  it("a day where only the goals were finished keeps the streak", () => {
+    expect(streak({}, { [d(0)]: true })).toBe(1);
+    expect(streak({}, { [d(0)]: true, [d(1)]: true })).toBe(2);
+  });
+  it("a day with no ticks and no finished goals breaks the streak", () => {
+    expect(streak({ [d(2)]: 3 }, {})).toBe(0);
+  });
+  it("best streak counts goal-only days", () => {
+    expect(bestStreak({ [d(2)]: 1 }, { [d(1)]: true })).toBe(2);
   });
 });

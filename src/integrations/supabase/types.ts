@@ -16,16 +16,19 @@ export type Database = {
     Tables: {
       activity: {
         Row: {
+          all_done: boolean
           count: number
           day: string
           user_id: string
         }
         Insert: {
+          all_done?: boolean
           count?: number
           day: string
           user_id: string
         }
         Update: {
+          all_done?: boolean
           count?: number
           day?: string
           user_id?: string
