@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { doneToday, today } from "@/lib/store";
+import { bestStreak, doneToday, streak, today } from "@/lib/store";
 import { subjectsFor } from "@/lib/syllabus";
 
 describe("daily targets reset at midnight", () => {

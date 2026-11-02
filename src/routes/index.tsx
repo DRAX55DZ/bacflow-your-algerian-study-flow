@@ -220,7 +220,7 @@ function Heatmap({ activity, allDone }: { activity: Record<string, number>; allD
     <>
       <h2 className="font-bold mb-3">{t("Study consistency")}</h2>
       <div className="grid grid-flow-col grid-rows-7 auto-cols-max gap-1 overflow-x-auto">
-        {days.map((d) => <div key={d} title={`${d}: ${activity[d] ?? 0} items${allDone[d] ? " · all goals done" : ""}`} className={`size-3.5 rounded-sm ${allDone[d] ? "ring-1 ring-flame" : ""}`} style={{ background: lvl(activity[d] ?? 0) }} />)}
+        {days.map((d) => <div key={d} title={`${d}: ${activity[d] ?? 0} items${allDone[d] ? ` · ${t("all goals done")}` : ""}`} className={`size-3.5 rounded-sm ${allDone[d] ? "ring-1 ring-flame" : ""}`} style={{ background: lvl(activity[d] ?? 0) }} />)}
       </div>
     </>
   );
