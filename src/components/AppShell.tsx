@@ -70,7 +70,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
           </div>
           <div className="flex items-center gap-1 rounded-full bg-gradient-flame px-3 py-1.5 text-sm font-bold text-primary-foreground glow-flame">
-            <Flame className="size-4" /> {streak(s.activity)}
+            <Flame className="size-4" /> {streak(s.activity, s.allDone)}
           </div>
           <button onClick={() => setDrawer(true)} title={t("Formula & mistake log")} className="size-9 flex items-center justify-center rounded-full hover:bg-muted"><NotebookPen className="size-4" /></button>
           <ThemeMenu />

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Check, Flame, Plus, Trash2 } from "lucide-react";
 import { Bar, Card } from "@/components/AppShell";
-import { addTarget, deleteTarget, targetXp, bestStreak, toggleTarget, streak, today, useAppState } from "@/lib/store";
+import { addTarget, deleteTarget, targetXp, bestStreak, toggleTarget, streak, studiedOn, today, useAppState } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { COEFFS, overallPct, sortedSubjects, subjectPct } from "@/lib/syllabus";
 
@@ -31,7 +31,7 @@ const QUOTES = [
 function Dashboard() {
   const s = useAppState();
   const overall = overallPct(s.stream, s.done);
-  const st = streak(s.activity);
+  const st = streak(s.activity, s.allDone);
   const { t, lang } = useT();
 
   return (
@@ -50,13 +50,13 @@ function Dashboard() {
         </motion.div>
         <div className="mt-3 text-3xl font-bold">{st} {t(st === 1 ? "day" : "days")}</div>
         <div className="text-sm text-muted-foreground">{t("Study streak")}</div>
-        <StreakExtras activity={s.activity} st={st} />
+        <StreakExtras activity={s.activity} allDone={s.allDone} st={st} />
       </Card>
 
       <Countdown />
       <Targets />
 
-      <Card className="md:col-span-3"><Heatmap activity={s.activity} /></Card>
+      <Card className="md:col-span-3"><Heatmap activity={s.activity} allDone={s.allDone} /></Card>
 
       <Card className="md:col-span-3 overflow-x-auto">
         <h2 className="font-bold mb-3">{t("Subjects")}</h2>
@@ -82,23 +82,23 @@ function Dashboard() {
 }
 
 const GOALS = [3, 7, 14, 30, 60, 100, 200, 365];
-function StreakExtras({ activity, st }: { activity: Record<string, number>; st: number }) {
+function StreakExtras({ activity, allDone, st }: { activity: Record<string, number>; allDone: Record<string, boolean>; st: number }) {
   const { t } = useT();
   const [week, setWeek] = useState<{ k: string; on: boolean }[]>([]);
   useEffect(() => {
     const out: { k: string; on: boolean }[] = [];
-    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const k = today(d); out.push({ k, on: (activity[k] ?? 0) > 0 }); }
+    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const k = today(d); out.push({ k, on: studiedOn(activity, allDone, k) }); }
     setWeek(out);
-  }, [activity]);
+  }, [activity, allDone]);
   const studied = week.length ? week[6]!.on : false;
-  const best = Math.max(bestStreak(activity), st);
+  const best = Math.max(bestStreak(activity, allDone), st);
   const goal = GOALS.find((g) => g > st) ?? st + 100;
   return (
     <div className="mt-3 w-full space-y-2">
       <div className="flex justify-center gap-1.5">
         {week.map((w) => <Flame key={w.k} className={`size-4 ${w.on ? "text-flame" : "text-muted-foreground opacity-30"}`} />)}
       </div>
-      <div className={`text-xs ${studied ? "text-mint" : "text-muted-foreground"}`}>{t(studied ? "✓ Studied today — streak safe" : "Tick one item today to keep your streak")}</div>
+      <div className={`text-xs ${studied ? "text-mint" : "text-muted-foreground"}`}>{t(studied ? "✓ Studied today — streak safe" : "Tick an item or finish all today's targets to keep your streak")}</div>
       <div className="flex justify-between text-xs text-muted-foreground"><span>{t("Best")}: {best}</span><span>{t("Next goal")}: {goal}</span></div>
       <Bar pct={(st / goal) * 100} />
     </div>
@@ -174,7 +174,12 @@ function Targets() {
         <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted"><motion.div animate={{ width: total ? `${(done / total) * 100}%` : "0%" }} className="h-full bg-gradient-brand" /></div>
         <span className="font-mono text-xs">{done}/{total}</span>
       </div>
-      {all && <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="mt-2 text-sm font-semibold text-mint">🏆 {t("All done! +50 bonus XP")}</motion.p>}
+      {all && (
+        <motion.p initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="mt-2 text-sm font-semibold text-mint">
+          🏆 {t("All done! +50 bonus XP")}
+          <span className="mt-0.5 block text-xs font-bold text-flame">🔥 {t("Today's streak is safe")}</span>
+        </motion.p>
+      )}
       <ul className="mt-3 space-y-1">
         <AnimatePresence initial={false}>
           {s.targets.map((x) => (
@@ -203,7 +208,7 @@ function Targets() {
   );
 }
 
-function Heatmap({ activity }: { activity: Record<string, number> }) {
+function Heatmap({ activity, allDone }: { activity: Record<string, number>; allDone: Record<string, boolean> }) {
   const days = useMemo(() => {
     const start = new Date("2026-09-01"); const out: string[] = [];
     const end = new Date(); for (const d = new Date(start); d <= end || out.length % 7; d.setDate(d.getDate() + 1)) out.push(today(d));
@@ -215,7 +220,7 @@ function Heatmap({ activity }: { activity: Record<string, number> }) {
     <>
       <h2 className="font-bold mb-3">{t("Study consistency")}</h2>
       <div className="grid grid-flow-col grid-rows-7 auto-cols-max gap-1 overflow-x-auto">
-        {days.map((d) => <div key={d} title={`${d}: ${activity[d] ?? 0} items`} className="size-3.5 rounded-sm" style={{ background: lvl(activity[d] ?? 0) }} />)}
+        {days.map((d) => <div key={d} title={`${d}: ${activity[d] ?? 0} items${allDone[d] ? " · all goals done" : ""}`} className={`size-3.5 rounded-sm ${allDone[d] ? "ring-1 ring-flame" : ""}`} style={{ background: lvl(activity[d] ?? 0) }} />)}
       </div>
     </>
   );
