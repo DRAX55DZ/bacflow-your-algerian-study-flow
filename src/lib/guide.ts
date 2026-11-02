@@ -51,7 +51,7 @@ export const TECHNIQUES: Technique[] = [
     tip: { en: "Add old units to your daily targets so reviews appear automatically.", ar: "أضف الوحدات القديمة إلى أهدافك اليومية لتظهر المراجعات تلقائيا." },
   },
   {
-    icon: MessageSquareQuestion, color: "var(--mint)",
+    icon: MessageSquareQuote, color: "var(--mint)",
     title: { en: "The Feynman technique", ar: "تقنية فاينمان" },
     why: { en: "If you can't explain it simply, you don't understand it yet. This exposes fake knowledge instantly.", ar: "إذا لم تستطع شرحه ببساطة، فأنت لم تفهمه بعد. هذه الطريقة تكشف المعرفة الوهمية فورا." },
     steps: [
