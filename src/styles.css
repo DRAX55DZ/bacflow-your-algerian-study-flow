@@ -120,6 +120,38 @@
   --violet: oklch(0.55 0.22 263); --cyan: oklch(0.68 0.15 237); --accent: oklch(0.93 0.04 263);
   --glass: oklch(1 0 0 / 0.7);
 }
+[data-theme="sunset"] {
+  --background: oklch(0.15 0.025 350); --card: oklch(0.2 0.035 350); --popover: oklch(0.2 0.035 350);
+  --primary: oklch(0.75 0.16 55); --ring: oklch(0.75 0.16 55); --primary-foreground: oklch(0.15 0.02 350);
+  --violet: oklch(0.65 0.2 15); --cyan: oklch(0.8 0.12 85); --mint: oklch(0.78 0.14 160); --flame: oklch(0.75 0.18 45);
+  --muted: oklch(0.24 0.03 350); --secondary: oklch(0.24 0.03 350); --accent: oklch(0.28 0.06 40);
+  --glass: oklch(0.2 0.035 350 / 0.55); --heat-0: oklch(0.25 0.03 350);
+}
+[data-theme="ocean"] {
+  --background: oklch(0.15 0.025 240); --card: oklch(0.19 0.03 240); --popover: oklch(0.19 0.03 240);
+  --primary: oklch(0.78 0.12 225); --ring: oklch(0.78 0.12 225); --primary-foreground: oklch(0.15 0.02 240);
+  --violet: oklch(0.7 0.14 275); --cyan: oklch(0.78 0.12 225); --mint: oklch(0.8 0.13 180); --flame: oklch(0.76 0.17 55);
+  --muted: oklch(0.23 0.025 240); --secondary: oklch(0.23 0.025 240); --accent: oklch(0.26 0.05 220);
+  --glass: oklch(0.19 0.03 240 / 0.55); --heat-0: oklch(0.24 0.025 240);
+}
+[data-theme="sakura"] {
+  --background: oklch(0.15 0.02 350); --card: oklch(0.2 0.03 350); --popover: oklch(0.2 0.03 350);
+  --primary: oklch(0.72 0.17 350); --ring: oklch(0.72 0.17 350); --primary-foreground: oklch(0.15 0.02 350);
+  --violet: oklch(0.75 0.12 300); --cyan: oklch(0.78 0.13 10); --mint: oklch(0.8 0.12 160); --flame: oklch(0.72 0.18 30);
+  --muted: oklch(0.24 0.025 350); --secondary: oklch(0.24 0.025 350); --accent: oklch(0.28 0.05 350);
+  --glass: oklch(0.2 0.03 350 / 0.55); --heat-0: oklch(0.25 0.025 350);
+}
+[data-theme="sand"] {
+  --background: oklch(0.965 0.015 90); --foreground: oklch(0.28 0.04 60); --card: oklch(0.99 0.008 90);
+  --card-foreground: oklch(0.28 0.04 60); --popover: oklch(0.99 0.008 90); --popover-foreground: oklch(0.28 0.04 60);
+  --primary: oklch(0.6 0.14 60); --ring: oklch(0.6 0.14 60); --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.93 0.02 85); --secondary-foreground: oklch(0.3 0.04 60);
+  --muted: oklch(0.93 0.02 85); --muted-foreground: oklch(0.5 0.04 60);
+  --accent: oklch(0.92 0.04 75); --accent-foreground: oklch(0.35 0.08 60);
+  --border: oklch(0.88 0.02 85); --input: oklch(0.88 0.02 85);
+  --violet: oklch(0.55 0.15 40); --cyan: oklch(0.65 0.1 200); --mint: oklch(0.6 0.12 175); --flame: oklch(0.62 0.16 45);
+  --glass: oklch(0.99 0.008 90 / 0.7); --heat-0: oklch(0.91 0.02 85);
+}
 body, .glass, button, section, nav { transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease; }
 
 @layer base {
