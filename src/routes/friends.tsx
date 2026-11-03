@@ -51,7 +51,7 @@ function Friends() {
     flash(error ? "Couldn't send" : kind === "nudge" ? `Nudged ${f.name} to study 📣` : `Sent ${kind} to ${f.name}`);
   };
 
-  const me = { id: "me", name: `${s.name} (${t("you")})`, stream: s.stream, streak: streak(s.activity), pct: Math.round(overallPct(s.stream, s.done)), last: "", active: true };
+  const me = { id: "me", name: `${s.name} (${t("you")})`, stream: s.stream, streak: streak(s.activity, s.allDone), pct: Math.round(overallPct(s.stream, s.done)), last: "", active: true };
   const board = [...friends, me].sort((a, b) => b.pct - a.pct);
 
   return (
