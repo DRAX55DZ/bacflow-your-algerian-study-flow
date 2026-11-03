@@ -12,8 +12,9 @@ export const THEMES: { id: ThemeId; emoji: string; name: string; colors: string[
 /** Old saved values ("dark"/"light") map onto the new themes. */
 export const normalizeTheme = (t: string | null | undefined): ThemeId =>
   THEMES.some((x) => x.id === t) ? (t as ThemeId) : t === "light" ? "light" : "cyber";
+const LIGHT_THEMES: ThemeId[] = ["light", "sand"];
 export function applyTheme(t: ThemeId) {
   const el = document.documentElement;
   el.dataset["theme"] = t;
-  el.classList.toggle("dark", t !== "light");
+  el.classList.toggle("dark", !LIGHT_THEMES.includes(t));
 }
