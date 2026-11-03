@@ -148,13 +148,43 @@ if (typeof window !== "undefined") {
 export const studiedOn = (activity: Record<string, number>, goalsDone: Record<string, boolean>, day: string) =>
   (activity[day] ?? 0) > 0 || !!goalsDone[day];
 
-/** Consecutive study days ending today (or yesterday if nothing logged yet today). */
-export function streak(activity: Record<string, number>, goalsDone: Record<string, boolean> = {}) {
-  const d = new Date();
+/** Streak savers: up to this many missed days per week (weeks start Sunday) don't break the streak. */
+export const SAVERS_PER_WEEK = 2;
+const weekKey = (d: Date) => { const x = new Date(d); x.setDate(x.getDate() - x.getDay()); return today(x); };
+
+/** Walk the streak back from today; missed days are covered by savers (they don't add to the count). */
+function streakInfo(activity: Record<string, number>, goalsDone: Record<string, boolean>, now = new Date()) {
+  const d = new Date(now);
+  const saved: string[] = [];
   if (!studiedOn(activity, goalsDone, today(d))) d.setDate(d.getDate() - 1);
   let n = 0;
-  while (studiedOn(activity, goalsDone, today(d))) { n++; d.setDate(d.getDate() - 1); }
-  return n;
+  const used: Record<string, number> = {};
+  for (let guard = 0; guard < 4000; guard++) {
+    if (studiedOn(activity, goalsDone, today(d))) { n++; d.setDate(d.getDate() - 1); continue; }
+    if (n === 0) break;
+    // Gap: bridge it only if every missed day fits that week's savers and a study day lies beyond.
+    const probe = new Date(d); const gap: Date[] = []; const tmp = { ...used };
+    while (!studiedOn(activity, goalsDone, today(probe))) {
+      const w = weekKey(probe);
+      if ((tmp[w] ?? 0) >= SAVERS_PER_WEEK) { gap.length = 0; break; }
+      tmp[w] = (tmp[w] ?? 0) + 1; gap.push(new Date(probe)); probe.setDate(probe.getDate() - 1);
+    }
+    if (!gap.length) break;
+    Object.assign(used, tmp); gap.forEach((g) => saved.push(today(g))); d.setTime(probe.getTime());
+  }
+  const leftThisWeek = SAVERS_PER_WEEK - (used[weekKey(now)] ?? 0);
+  return { n, saved, leftThisWeek };
+}
+
+/** Consecutive study days ending today (or yesterday), with up to 2 saved days per week. */
+export function streak(activity: Record<string, number>, goalsDone: Record<string, boolean> = {}) {
+  return streakInfo(activity, goalsDone).n;
+}
+
+/** Days covered by a streak saver and savers still free this week. */
+export function streakSavers(activity: Record<string, number>, goalsDone: Record<string, boolean> = {}) {
+  const { saved, leftThisWeek } = streakInfo(activity, goalsDone);
+  return { saved, left: Math.max(0, leftThisWeek) };
 }
 
 /** Push syllabus ticks made while offline once the connection is back. */
