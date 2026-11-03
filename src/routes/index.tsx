@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Check, Flame, Plus, Trash2 } from "lucide-react";
 import { Bar, Card } from "@/components/AppShell";
-import { addTarget, deleteTarget, targetXp, bestStreak, toggleTarget, streak, studiedOn, today, useAppState } from "@/lib/store";
+import { addTarget, deleteTarget, targetXp, bestStreak, toggleTarget, streak, streakSavers, studiedOn, today, useAppState } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { COEFFS, overallPct, sortedSubjects, subjectPct } from "@/lib/syllabus";
 
@@ -84,10 +84,12 @@ function Dashboard() {
 const GOALS = [3, 7, 14, 30, 60, 100, 200, 365];
 function StreakExtras({ activity, allDone, st }: { activity: Record<string, number>; allDone: Record<string, boolean>; st: number }) {
   const { t } = useT();
-  const [week, setWeek] = useState<{ k: string; on: boolean }[]>([]);
+  const [week, setWeek] = useState<{ k: string; on: boolean; saved: boolean }[]>([]);
+  const [left, setLeft] = useState(2);
   useEffect(() => {
-    const out: { k: string; on: boolean }[] = [];
-    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const k = today(d); out.push({ k, on: studiedOn(activity, allDone, k) }); }
+    const sv = streakSavers(activity, allDone); setLeft(sv.left);
+    const out: { k: string; on: boolean; saved: boolean }[] = [];
+    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const k = today(d); out.push({ k, on: studiedOn(activity, allDone, k), saved: sv.saved.includes(k) }); }
     setWeek(out);
   }, [activity, allDone]);
   const studied = week.length ? week[6]!.on : false;
@@ -96,9 +98,10 @@ function StreakExtras({ activity, allDone, st }: { activity: Record<string, numb
   return (
     <div className="mt-3 w-full space-y-2">
       <div className="flex justify-center gap-1.5">
-        {week.map((w) => <Flame key={w.k} className={`size-4 ${w.on ? "text-flame" : "text-muted-foreground opacity-30"}`} />)}
+        {week.map((w) => w.saved ? <span key={w.k} title={t("Streak saver used")} className="text-sm leading-4">🧊</span> : <Flame key={w.k} className={`size-4 ${w.on ? "text-flame" : "text-muted-foreground opacity-30"}`} />)}
       </div>
       <div className={`text-xs ${studied ? "text-mint" : "text-muted-foreground"}`}>{t(studied ? "✓ Studied today — streak safe" : "Tick an item or finish all today's targets to keep your streak")}</div>
+      <div className="text-xs text-cyan">🧊 {t("Streak savers left this week")}: {left}/2</div>
       <div className="flex justify-between text-xs text-muted-foreground"><span>{t("Best")}: {best}</span><span>{t("Next goal")}: {goal}</span></div>
       <Bar pct={(st / goal) * 100} />
     </div>
