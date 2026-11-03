@@ -47,7 +47,7 @@ describe("streak savers", () => {
     expect(streak({ [dd(0)]: 1, [dd(2)]: 1 })).toBe(2);
     expect(streakSavers({ [dd(0)]: 1, [dd(2)]: 1 }).left).toBe(1);
   });
-  it("three missed days in a row break it (only 2 savers a week)", () => {
-    expect(streak({ [dd(0)]: 1, [dd(4)]: 1 })).toBe(1);
+  it("five missed days in a row break it (only 2 savers a week)", () => {
+    expect(streak({ [dd(0)]: 1, [dd(6)]: 1 })).toBe(1);
   });
 });
