@@ -32,9 +32,11 @@ function Friends() {
 
   useEffect(() => {
     reload();
-    const ch = supabase.channel("board").on("postgres_changes", { event: "*", schema: "public", table: "progress" }, reload)
-      .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, reload).subscribe();
-    return () => { supabase.removeChannel(ch); };
+    let tm: ReturnType<typeof setTimeout> | undefined;
+    const soon = () => { clearTimeout(tm); tm = setTimeout(reload, 3000); };
+    const ch = supabase.channel("board").on("postgres_changes", { event: "*", schema: "public", table: "progress" }, soon)
+      .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, soon).subscribe();
+    return () => { clearTimeout(tm); supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.userId]);
 

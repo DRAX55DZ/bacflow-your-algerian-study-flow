@@ -152,7 +152,9 @@
   --violet: oklch(0.55 0.15 40); --cyan: oklch(0.65 0.1 200); --mint: oklch(0.6 0.12 175); --flame: oklch(0.62 0.16 45);
   --glass: oklch(0.99 0.008 90 / 0.7); --heat-0: oklch(0.91 0.02 85);
 }
-body, .glass, button, section, nav { transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease; }
+body, .glass { transition: background-color .35s ease, color .35s ease, border-color .35s ease; }
+@media (max-width: 768px) { .glass { backdrop-filter: none; -webkit-backdrop-filter: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
 @layer base {
   * { border-color: var(--color-border); }
@@ -163,7 +165,6 @@ body, .glass, button, section, nav { transition: background-color .35s ease, col
     background-image:
       radial-gradient(40rem 30rem at 10% -10%, color-mix(in oklab, var(--violet) 18%, transparent), transparent),
       radial-gradient(35rem 25rem at 100% 10%, color-mix(in oklab, var(--cyan) 14%, transparent), transparent);
-    background-attachment: fixed;
     min-height: 100vh;
   }
   [lang="ar"], .ar { font-family: var(--font-arabic); }
@@ -171,7 +172,8 @@ body, .glass, button, section, nav { transition: background-color .35s ease, col
 
 @utility glass {
   background: var(--glass);
-  backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
 }
