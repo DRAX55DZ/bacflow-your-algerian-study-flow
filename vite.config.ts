@@ -25,6 +25,11 @@ export default defineConfig({
         workbox: {
           globPatterns: ["**/*.{js,css,html,woff2,png,svg,ico,webmanifest}"],
           navigateFallback: null,
+          // Build output lives in a "client/" folder, but files are served from the site root.
+          modifyURLPrefix: { "client/": "" },
+          cleanupOutdatedCaches: true,
+          clientsClaim: true,
+          skipWaiting: true,
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           runtimeCaching: [
             {
