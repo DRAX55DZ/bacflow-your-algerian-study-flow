@@ -5,7 +5,7 @@ import confetti from "canvas-confetti";
 import { Pause, Play, RotateCcw, SkipForward, Volume2, VolumeX } from "lucide-react";
 import { Card } from "@/components/AppShell";
 import { useT } from "@/lib/i18n";
-import { today } from "@/lib/store";
+import { addFocusMinutes, today } from "@/lib/store";
 
 export const Route = createFileRoute("/focus")({
   head: () => ({
@@ -40,7 +40,7 @@ function beep() {
     const ctx = new AudioContext();
     [0, 0.3, 0.6, 1.2, 1.5, 1.8].forEach((t, i) => {
       const o = ctx.createOscillator(); o.type = "square"; const g = ctx.createGain();
-      o.frequency.value = i % 3 === 2 ? 1046 : 784; o.connect(g).connect(ctx.destination);
+      o.type = "triangle"; o.frequency.value = i % 3 === 2 ? 1046 : 784; o.connect(g).connect(ctx.destination);
       g.gain.setValueAtTime(0.9, ctx.currentTime + t); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.22);
       o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.24);
     });
