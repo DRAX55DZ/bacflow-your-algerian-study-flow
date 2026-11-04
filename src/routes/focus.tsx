@@ -5,7 +5,7 @@ import confetti from "canvas-confetti";
 import { Pause, Play, RotateCcw, SkipForward, Volume2, VolumeX } from "lucide-react";
 import { Card } from "@/components/AppShell";
 import { useT } from "@/lib/i18n";
-import { today } from "@/lib/store";
+import { addFocusMinutes, today } from "@/lib/store";
 
 export const Route = createFileRoute("/focus")({
   head: () => ({
@@ -38,13 +38,13 @@ function loadStats(): Record<string, { sessions: number; minutes: number }> {
 function beep() {
   try {
     const ctx = new AudioContext();
-    [0, 0.25, 0.5].forEach((t, i) => {
-      const o = ctx.createOscillator(); const g = ctx.createGain();
-      o.frequency.value = i === 2 ? 1046 : 784; o.connect(g).connect(ctx.destination);
-      g.gain.setValueAtTime(0.25, ctx.currentTime + t); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.22);
+    [0, 0.3, 0.6, 1.2, 1.5, 1.8].forEach((t, i) => {
+      const o = ctx.createOscillator(); o.type = "square"; const g = ctx.createGain();
+      o.frequency.value = i % 3 === 2 ? 1046 : 784; o.connect(g).connect(ctx.destination);
+      g.gain.setValueAtTime(0.9, ctx.currentTime + t); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.22);
       o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.24);
     });
-    setTimeout(() => ctx.close(), 1200);
+    setTimeout(() => ctx.close(), 2500);
   } catch { /* ignore */ }
 }
 
@@ -72,7 +72,7 @@ function Focus() {
       confetti({ particleCount: 120, spread: 90 });
       const d = today(new Date()); const s = loadStats();
       s[d] = { sessions: (s[d]?.sessions ?? 0) + 1, minutes: (s[d]?.minutes ?? 0) + work };
-      localStorage.setItem(STATS_KEY, JSON.stringify(s)); setStats(s);
+      localStorage.setItem(STATS_KEY, JSON.stringify(s)); setStats(s); void addFocusMinutes(work);
       const r = round + 1; setRound(r);
       const next: Mode = r % 4 === 0 ? "long" : "break";
       setMode(next); setLeft(dur(next)); endAt.current = Date.now() + dur(next) * 1000;
