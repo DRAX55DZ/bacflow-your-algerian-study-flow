@@ -11,6 +11,7 @@ export interface State {
   name: string; stream: Stream; theme: ThemeId; lang: Lang;
   done: Record<string, boolean>;
   activity: Record<string, number>; // yyyy-mm-dd -> items done
+  focus: Record<string, number>; // yyyy-mm-dd -> focused minutes
   allDone: Record<string, boolean>; // yyyy-mm-dd -> every daily target finished
   notes: Note[];
   targets: Target[];
@@ -24,7 +25,7 @@ export const doneToday = (doneOn: string | null | undefined, now = new Date()) =
 
 const DEFAULT: State = {
   userId: null, ready: false, onboarded: false, inviteCode: "",
-  name: "", stream: "sci", theme: "cyber", lang: "en", done: {}, activity: {}, allDone: {}, notes: [], targets: [],
+  name: "", stream: "sci", theme: "cyber", lang: "en", done: {}, activity: {}, focus: {}, allDone: {}, notes: [], targets: [],
 };
 
 let state: State = DEFAULT;
@@ -55,7 +56,7 @@ export async function loadUser(userId: string | null) {
   const [p, pr, a, n, t] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("progress").select("item_id").eq("user_id", userId),
-    supabase.from("activity").select("day,count,all_done").eq("user_id", userId),
+    supabase.from("activity").select("day,count,all_done,focus_minutes").eq("user_id", userId),
     supabase.from("notes").select("*").order("created_at", { ascending: false }),
     supabase.from("targets").select("*").order("created_at"),
   ]);
@@ -66,6 +67,7 @@ export async function loadUser(userId: string | null) {
     name: prof?.name ?? "", stream: (prof?.stream as Stream) ?? "sci", theme: normalizeTheme(prof?.theme), lang: prof?.lang === "ar" ? "ar" : "en",
     done: Object.fromEntries((pr.data ?? []).map((r) => [r.item_id, true])),
     activity: Object.fromEntries((a.data ?? []).map((r) => [r.day, r.count])),
+    focus: Object.fromEntries((a.data ?? []).map((r) => [r.day, r.focus_minutes ?? 0])),
     allDone: Object.fromEntries((a.data ?? []).filter((r) => r.all_done).map((r) => [r.day, true])),
     notes: (n.data ?? []).map((r) => ({ id: r.id, type: r.type as Note["type"], text: r.text, at: +new Date(r.created_at) })),
     targets: (t.data ?? []).map((r) => ({ id: r.id, text: r.text, done: doneToday(r.done_on) })),
@@ -211,3 +213,14 @@ export function bestStreak(activity: Record<string, number>, goalsDone: Record<s
   }
   return best;
 }
+
+/** Log finished focus minutes for today; they deepen the day's colour on the consistency map. */
+export async function addFocusMinutes(min: number) {
+  const d = today(); const total = (state.focus[d] ?? 0) + min;
+  set((s) => ({ ...s, focus: { ...s.focus, [d]: total } }));
+  const uid = state.userId; if (!uid || !navigator.onLine) return;
+  warn(await supabase.from("activity").upsert({ user_id: uid, day: d, focus_minutes: total }));
+}
+
+/** Consistency level for a day: each ticked item counts 1, every 25 focused minutes counts 1. */
+export const dayScore = (items: number, focusMin: number) => items + Math.floor(focusMin / 25);

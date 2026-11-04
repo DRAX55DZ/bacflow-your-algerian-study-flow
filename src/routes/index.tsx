@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Check, Flame, Plus, Trash2 } from "lucide-react";
 import { Bar, Card } from "@/components/AppShell";
-import { addTarget, deleteTarget, targetXp, bestStreak, toggleTarget, streak, streakSavers, studiedOn, today, useAppState } from "@/lib/store";
+import { addTarget, deleteTarget, targetXp, bestStreak, toggleTarget, streak, streakSavers, dayScore, studiedOn, today, useAppState } from "@/lib/store";
 import { useT } from "@/lib/i18n";
 import { COEFFS, overallPct, sortedSubjects, subjectPct } from "@/lib/syllabus";
 
@@ -56,7 +56,7 @@ function Dashboard() {
       <Countdown />
       <Targets />
 
-      <Card className="md:col-span-3"><Heatmap activity={s.activity} allDone={s.allDone} /></Card>
+      <Card className="md:col-span-3"><Heatmap activity={s.activity} allDone={s.allDone} focus={s.focus} /></Card>
 
       <Card className="md:col-span-3 overflow-x-auto">
         <h2 className="font-bold mb-3">{t("Subjects")}</h2>
@@ -211,7 +211,7 @@ function Targets() {
   );
 }
 
-function Heatmap({ activity, allDone }: { activity: Record<string, number>; allDone: Record<string, boolean> }) {
+function Heatmap({ activity, allDone, focus }: { activity: Record<string, number>; allDone: Record<string, boolean>; focus: Record<string, number> }) {
   const days = useMemo(() => {
     const start = new Date("2026-09-01"); const out: string[] = [];
     const end = new Date(); for (const d = new Date(start); d <= end || out.length % 7; d.setDate(d.getDate() + 1)) out.push(today(d));
@@ -223,7 +223,7 @@ function Heatmap({ activity, allDone }: { activity: Record<string, number>; allD
     <>
       <h2 className="font-bold mb-3">{t("Study consistency")}</h2>
       <div className="grid grid-flow-col grid-rows-7 auto-cols-max gap-1 overflow-x-auto">
-        {days.map((d) => <div key={d} title={`${d}: ${activity[d] ?? 0} items${allDone[d] ? ` · ${t("all goals done")}` : ""}`} className={`size-3.5 rounded-sm ${allDone[d] ? "ring-1 ring-flame" : ""}`} style={{ background: lvl(activity[d] ?? 0) }} />)}
+        {days.map((d) => <div key={d} title={`${d}: ${activity[d] ?? 0} items · ${focus[d] ?? 0} min${allDone[d] ? ` · ${t("all goals done")}` : ""}`} className={`size-3.5 rounded-sm ${allDone[d] ? "ring-1 ring-flame" : ""}`} style={{ background: lvl(dayScore(activity[d] ?? 0, focus[d] ?? 0)) }} />)}
       </div>
     </>
   );
