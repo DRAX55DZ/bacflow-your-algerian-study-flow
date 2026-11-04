@@ -19,18 +19,21 @@ export type Database = {
           all_done: boolean
           count: number
           day: string
+          focus_minutes: number
           user_id: string
         }
         Insert: {
           all_done?: boolean
           count?: number
           day: string
+          focus_minutes?: number
           user_id: string
         }
         Update: {
           all_done?: boolean
           count?: number
           day?: string
+          focus_minutes?: number
           user_id?: string
         }
         Relationships: []

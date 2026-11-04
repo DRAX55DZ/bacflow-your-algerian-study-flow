@@ -1,0 +1,1 @@
+ALTER TABLE public.activity ADD COLUMN IF NOT EXISTS focus_minutes integer NOT NULL DEFAULT 0;
