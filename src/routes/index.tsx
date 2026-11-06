@@ -212,18 +212,59 @@ function Targets() {
 }
 
 function Heatmap({ activity, allDone, focus }: { activity: Record<string, number>; allDone: Record<string, boolean>; focus: Record<string, number> }) {
-  const days = useMemo(() => {
-    const start = new Date("2026-09-01"); const out: string[] = [];
-    const end = new Date(); for (const d = new Date(start); d <= end || out.length % 7; d.setDate(d.getDate() + 1)) out.push(today(d));
-    return out.slice(-26 * 7);
+  const { t, lang } = useT();
+  const [sel, setSel] = useState<string | null>(null);
+  const weeks = useMemo(() => {
+    const end = new Date(); const start = new Date(end); start.setDate(start.getDate() - 25 * 7 - end.getDay());
+    const out: string[][] = [];
+    for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) { if (d.getDay() === 0) out.push([]); out[out.length - 1]?.push(today(d)); }
+    return out;
   }, []);
-  const { t } = useT();
+  const td = today();
+  const all = weeks.flat();
+  const score = (d: string) => dayScore(activity[d] ?? 0, focus[d] ?? 0);
+  const active = all.filter((d) => score(d) > 0 || allDone[d]).length;
+  const mins = all.reduce((a, d) => a + (focus[d] ?? 0), 0);
+  const items = all.reduce((a, d) => a + (activity[d] ?? 0), 0);
+  const best = all.reduce((b: string, d: string) => (score(d) > score(b) ? d : b), all[0] ?? td);
   const lvl = (n: number) => (n === 0 ? "var(--heat-0)" : `color-mix(in oklab, var(--mint) ${Math.min(100, 25 + n * 15)}%, var(--heat-0))`);
+  const month = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(lang === "ar" ? "ar-DZ" : "en", { month: "short" });
+  const wd = lang === "ar" ? ["ح", "", "ث", "", "خ", "", "س"] : ["S", "", "T", "", "T", "", "S"];
+  const s = sel ?? td;
   return (
     <>
-      <h2 className="font-bold mb-3">{t("Study consistency")}</h2>
-      <div className="grid grid-flow-col grid-rows-7 auto-cols-max gap-1 overflow-x-auto">
-        {days.map((d) => <div key={d} title={`${d}: ${activity[d] ?? 0} items · ${focus[d] ?? 0} min${allDone[d] ? ` · ${t("all goals done")}` : ""}`} className={`size-3.5 rounded-sm ${allDone[d] ? "ring-1 ring-flame" : ""}`} style={{ background: lvl(dayScore(activity[d] ?? 0, focus[d] ?? 0)) }} />)}
+      <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
+        <h2 className="font-bold">{t("Study consistency")}</h2>
+        <div className="flex flex-wrap gap-2 text-xs">
+          {[[t("Active days"), `${active}/${all.length}`], [t("Items"), items], [t("Focus"), `${Math.floor(mins / 60)}h ${mins % 60}m`]].map(([k, v]) => (
+            <span key={String(k)} className="rounded-lg bg-muted px-2.5 py-1"><span className="text-muted-foreground">{k} </span><b className="font-mono">{v}</b></span>
+          ))}
+        </div>
+      </div>
+      <div className="flex gap-1 overflow-x-auto pb-1" dir="ltr">
+        <div className="grid grid-rows-[auto_repeat(7,0.875rem)] gap-1 pe-1 text-[10px] text-muted-foreground">
+          <span className="h-3" />{wd.map((w, i) => <span key={i} className="leading-[0.875rem]">{w}</span>)}
+        </div>
+        {weeks.map((w, wi) => (
+          <div key={wi} className="grid grid-rows-[auto_repeat(7,0.875rem)] gap-1">
+            <span className="h-3 text-[10px] text-muted-foreground whitespace-nowrap">{w[0] && w[0].slice(8) <= "07" ? month(w[0]) : ""}</span>
+            {w.map((d) => (
+              <button key={d} onClick={() => setSel(d)} aria-label={d}
+                className={`size-3.5 rounded-sm transition-transform hover:scale-125 ${allDone[d] ? "ring-1 ring-flame" : ""} ${d === td ? "outline outline-1 outline-offset-1 outline-foreground" : ""} ${d === sel ? "scale-125" : ""}`}
+                style={{ background: lvl(score(d)) }} />
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="rounded-lg bg-muted/60 px-3 py-1.5">
+          <b>{new Date(`${s}T12:00:00`).toLocaleDateString(lang === "ar" ? "ar-DZ" : "en", { weekday: "short", day: "numeric", month: "short" })}</b>
+          <span className="text-muted-foreground"> · {activity[s] ?? 0} {t("items")} · {focus[s] ?? 0} min{allDone[s] ? ` · 🔥 ${t("all goals done")}` : ""}</span>
+        </div>
+        <div className="flex items-center gap-1 text-muted-foreground">
+          {best && score(best) > 0 && <span className="me-3">⭐ {t("Best day")}: {score(best)}</span>}
+          {t("Less")}{[0, 1, 3, 5, 7].map((n) => <span key={n} className="size-3 rounded-sm" style={{ background: lvl(n) }} />)}{t("More")}
+        </div>
       </div>
     </>
   );
