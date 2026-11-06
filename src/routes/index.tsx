@@ -226,7 +226,7 @@ function Heatmap({ activity, allDone, focus }: { activity: Record<string, number
   const active = all.filter((d) => score(d) > 0 || allDone[d]).length;
   const mins = all.reduce((a, d) => a + (focus[d] ?? 0), 0);
   const items = all.reduce((a, d) => a + (activity[d] ?? 0), 0);
-  const best = all.reduce((b, d) => (score(d) > score(b) ? d : b), all[0]);
+  const best = all.reduce((b: string, d: string) => (score(d) > score(b) ? d : b), all[0] ?? td);
   const lvl = (n: number) => (n === 0 ? "var(--heat-0)" : `color-mix(in oklab, var(--mint) ${Math.min(100, 25 + n * 15)}%, var(--heat-0))`);
   const month = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(lang === "ar" ? "ar-DZ" : "en", { month: "short" });
   const wd = lang === "ar" ? ["ح", "", "ث", "", "خ", "", "س"] : ["S", "", "T", "", "T", "", "S"];
@@ -247,7 +247,7 @@ function Heatmap({ activity, allDone, focus }: { activity: Record<string, number
         </div>
         {weeks.map((w, wi) => (
           <div key={wi} className="grid grid-rows-[auto_repeat(7,0.875rem)] gap-1">
-            <span className="h-3 text-[10px] text-muted-foreground whitespace-nowrap">{w[0].slice(8) <= "07" ? month(w[0]) : ""}</span>
+            <span className="h-3 text-[10px] text-muted-foreground whitespace-nowrap">{w[0] && w[0].slice(8) <= "07" ? month(w[0]) : ""}</span>
             {w.map((d) => (
               <button key={d} onClick={() => setSel(d)} aria-label={d}
                 className={`size-3.5 rounded-sm transition-transform hover:scale-125 ${allDone[d] ? "ring-1 ring-flame" : ""} ${d === td ? "outline outline-1 outline-offset-1 outline-foreground" : ""} ${d === sel ? "scale-125" : ""}`}
