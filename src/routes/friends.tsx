@@ -96,8 +96,8 @@ function Friends() {
         </div>
         {podium.length >= 3 && (
           <div className="mb-4 grid grid-cols-3 items-end gap-2 text-center">
-            {[podium[1], podium[0], podium[2]].map((f, i) => {
-              const place = [2, 1, 3][i];
+            {[podium[1]!, podium[0]!, podium[2]!].map((f, i) => {
+              const place = [2, 1, 3][i]!;
               return (
                 <motion.div key={f.id} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: i * 0.08 }}
                   className={`rounded-2xl p-3 ${place === 1 ? "bg-gradient-brand text-primary-foreground pb-6" : "bg-muted/60"} ${f.id === "me" ? "ring-2 ring-primary" : ""}`}>

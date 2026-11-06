@@ -217,7 +217,7 @@ function Heatmap({ activity, allDone, focus }: { activity: Record<string, number
   const weeks = useMemo(() => {
     const end = new Date(); const start = new Date(end); start.setDate(start.getDate() - 25 * 7 - end.getDay());
     const out: string[][] = [];
-    for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) { if (d.getDay() === 0) out.push([]); out[out.length - 1].push(today(d)); }
+    for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) { if (d.getDay() === 0) out.push([]); out[out.length - 1]?.push(today(d)); }
     return out;
   }, []);
   const td = today();
