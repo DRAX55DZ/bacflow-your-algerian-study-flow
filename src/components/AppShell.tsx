@@ -39,7 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [s.userId]);
 
   return (
-    <div className="min-h-screen md:pl-28">
+    <div className="min-h-screen overflow-x-clip md:pl-28">
       <nav className="glass fixed z-40 bottom-3 left-3 right-3 flex justify-around p-2 md:bottom-auto md:right-auto md:top-1/2 md:-translate-y-1/2 md:left-4 md:flex-col md:gap-2">
         <div className="hidden md:flex size-12 items-center justify-center rounded-xl bg-gradient-brand font-bold text-primary-foreground mb-2">B</div>
         {NAV.map(({ to, label, icon: Icon }) => {
