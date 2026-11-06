@@ -35,7 +35,7 @@ function Dashboard() {
   const { t, lang } = useT();
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-3 [&>*]:min-w-0">
       <Card className="md:col-span-2 flex items-center gap-6">
         <Ring pct={overall} />
         <div>
