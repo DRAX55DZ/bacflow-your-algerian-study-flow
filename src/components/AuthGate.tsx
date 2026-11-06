@@ -17,7 +17,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, []);
   useEffect(() => { applyTheme(s.theme); }, [s.theme]);
 
-  if (!s.ready) return <div className="flex min-h-screen items-center justify-center text-gradient text-2xl font-bold">BacFlow</div>;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted || !s.ready) return <div className="flex min-h-screen items-center justify-center text-gradient text-2xl font-bold">BacFlow</div>;
   if (!s.userId) return <AuthScreen />;
   if (!s.onboarded) return <Onboarding />;
   return <>{children}</>;
