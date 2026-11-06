@@ -10,7 +10,7 @@ const AR = {
   "✓ Studied today — streak safe": "✓ درست اليوم — السلسلة محفوظة", "Tick an item or finish all today's targets to keep your streak": "أنجز عنصرًا أو أتمم كل أهداف اليوم للحفاظ على سلسلتك", Best: "الأفضل", "Next goal": "الهدف التالي", "Streak savers left this week": "منقذات السلسلة المتبقية هذا الأسبوع", "Streak saver used": "تم استخدام منقذ السلسلة",
   "Today's streak is safe": "سلسلة اليوم محفوظة", "all goals done": "كل الأهداف منجزة",
   hrs: "ساعة", min: "دقيقة", sec: "ثانية", "Today's targets": "أهداف اليوم", "Add a goal…": "أضف هدفا…",
-  "Study consistency": "خريطة المراجعة", "Active days": "أيام نشطة", Items: "عناصر", items: "عناصر", Focus: "تركيز", "Best day": "أفضل يوم", Less: "أقل", More: "أكثر", "By progress": "حسب التقدم", "By streak": "حسب السلسلة", All: "الكل", "Your rank": "ترتيبك", "Search a student": "ابحث عن طالب", "of": "من", Subjects: "المواد", Subject: "المادة", Coeff: "المعامل", Progress: "التقدم",
+  "Study consistency": "خريطة المراجعة", "Active days": "أيام نشطة", Items: "عناصر", items: "عناصر", "Best day": "أفضل يوم", Less: "أقل", More: "أكثر", "By progress": "حسب التقدم", "By streak": "حسب السلسلة", All: "الكل", "Your rank": "ترتيبك", "Search a student": "ابحث عن طالب", "of": "من", Subjects: "المواد", Subject: "المادة", Coeff: "المعامل", Progress: "التقدم",
   "Past Bac papers": "مواضيع البكالوريا", "Share to group chat": "مشاركة في الدردشة", Lesson: "الدرس", Summary: "الملخص",
   Exercises: "تمارين", easy: "سهل", medium: "متوسط", hard: "صعب", lesson: "درس", summary: "ملخص", exercise: "تمرين", quiz: "اختبار", bac: "بكالوريا",
   "Take the unit quiz": "اجتز اختبار الوحدة", "Quiz passed · retake": "تم النجاح · أعد الاختبار", quizTitle: "اختبار",
