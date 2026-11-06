@@ -27,6 +27,9 @@ function Friends() {
   const { t } = useT();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [code, setCode] = useState("");
+  const [sortBy, setSortBy] = useState<"pct" | "streak">("pct");
+  const [filter, setFilter] = useState<"all" | "sci" | "math">("all");
+  const [q, setQ] = useState("");
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(""), 2500); };
   const reload = () => { if (s.userId) fetchEveryone().then((all) => setFriends(all.filter((f) => f.id !== s.userId))); };
 
@@ -52,7 +55,11 @@ function Friends() {
   };
 
   const me = { id: "me", name: `${s.name} (${t("you")})`, stream: s.stream, streak: streak(s.activity, s.allDone), pct: Math.round(overallPct(s.stream, s.done)), last: "", active: true };
-  const board = [...friends, me].sort((a, b) => b.pct - a.pct);
+  const ranked = [...friends, me].filter((f) => filter === "all" || f.stream === filter)
+    .sort((a, b) => (sortBy === "pct" ? b.pct - a.pct || b.streak - a.streak : b.streak - a.streak || b.pct - a.pct));
+  const myRank = ranked.findIndex((f) => f.id === "me") + 1;
+  const board = ranked.map((f, i) => ({ ...f, rank: i + 1 })).filter((f) => !q || f.name.toLowerCase().includes(q.toLowerCase()));
+  const podium = !q ? ranked.slice(0, 3) : [];
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
@@ -73,12 +80,40 @@ function Friends() {
         </Card>
       </div>
       <Card className="md:col-span-2">
-        <h2 className="font-bold mb-3">{t("Leaderboard")}</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h2 className="font-bold">{t("Leaderboard")}</h2>
+          {myRank > 0 && <span className="rounded-lg bg-accent px-2.5 py-1 text-xs font-medium">{t("Your rank")}: <b className="font-mono">#{myRank}</b> {t("of")} {ranked.length}</span>}
+        </div>
+        <div className="mb-4 flex flex-wrap gap-2 text-xs">
+          {([["pct", t("By progress")], ["streak", t("By streak")]] as const).map(([k, l]) => (
+            <button key={k} onClick={() => setSortBy(k)} className={`rounded-lg px-3 py-1.5 font-medium ${sortBy === k ? "bg-gradient-brand text-primary-foreground" : "bg-muted"}`}>{l}</button>
+          ))}
+          <span className="w-px bg-border" />
+          {(["all", "sci", "math"] as const).map((k) => (
+            <button key={k} onClick={() => setFilter(k)} className={`rounded-lg px-3 py-1.5 font-medium ${filter === k ? "bg-accent ring-1 ring-primary" : "bg-muted"}`}>{k === "all" ? t("All") : t(STREAM_LABEL[k].en)}</button>
+          ))}
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Search a student")} className="ms-auto min-w-0 flex-1 sm:flex-none sm:w-44 rounded-lg bg-muted px-3 py-1.5 outline-none focus:ring-2 ring-ring" />
+        </div>
+        {podium.length >= 3 && (
+          <div className="mb-4 grid grid-cols-3 items-end gap-2 text-center">
+            {[podium[1], podium[0], podium[2]].map((f, i) => {
+              const place = [2, 1, 3][i];
+              return (
+                <motion.div key={f.id} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: i * 0.08 }}
+                  className={`rounded-2xl p-3 ${place === 1 ? "bg-gradient-brand text-primary-foreground pb-6" : "bg-muted/60"} ${f.id === "me" ? "ring-2 ring-primary" : ""}`}>
+                  <div className="text-2xl">{["🥇", "🥈", "🥉"][place - 1]}</div>
+                  <div className="truncate text-sm font-bold">{f.name}</div>
+                  <div className="font-mono text-lg font-bold">{sortBy === "pct" ? `${f.pct}%` : `🔥 ${f.streak}`}</div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
         {friends.length === 0 && <p className="mb-3 text-sm text-muted-foreground">{t("No other students yet — invite your classmates!")}</p>}
         <ul className="space-y-2">
-          {board.map((f, i) => (
+          {board.map((f) => (
             <motion.li layout key={f.id} className={`flex flex-wrap items-center gap-3 rounded-xl p-3 ${f.id === "me" ? "bg-accent" : "bg-muted/50"}`}>
-              <span className={`w-6 text-center font-bold ${i === 0 ? "text-flame" : "text-muted-foreground"}`}>{i + 1}</span>
+              <span className={`w-6 text-center font-bold ${f.rank <= 3 ? "text-flame" : "text-muted-foreground"}`}>{f.rank <= 3 ? ["🥇", "🥈", "🥉"][f.rank - 1] : f.rank}</span>
               <div className="size-9 rounded-full bg-gradient-brand flex items-center justify-center text-sm font-bold text-primary-foreground">{f.name[0]}</div>
               <div className="flex-1 min-w-32">
                 <div className="text-sm font-medium">{f.name} <span className="text-xs text-muted-foreground">· {t(STREAM_LABEL[f.stream].en)}</span></div>
@@ -86,7 +121,7 @@ function Friends() {
                 <div className="mt-1 w-40"><Bar pct={f.pct} color={f.stream === "math" ? "var(--violet)" : "var(--mint)"} /></div>
               </div>
               <span className="text-sm font-mono">{f.pct}%</span>
-              <span className="flex items-center gap-1 text-sm text-flame"><Flame className="size-4" />{f.streak}</span>
+              <span className={`flex items-center gap-1 text-sm ${f.streak > 0 ? "text-flame" : "text-muted-foreground"}`}><Flame className="size-4" />{f.streak}</span>
               {f.id !== "me" && (
                 <div className="flex items-center gap-1">
                   {["🔥", "👏", "📚", "⚡"].map((e) => (
