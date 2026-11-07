@@ -150,6 +150,9 @@ if (typeof window !== "undefined") {
 export const studiedOn = (activity: Record<string, number>, goalsDone: Record<string, boolean>, day: string) =>
   (activity[day] ?? 0) > 0 || !!goalsDone[day];
 
+export const studyActivity = (activity: Record<string, number>, focus: Record<string, number>) =>
+  Object.fromEntries(Array.from(new Set([...Object.keys(activity), ...Object.keys(focus)])).map((day) => [day, Math.max(activity[day] ?? 0, (focus[day] ?? 0) > 0 ? 1 : 0)]));
+
 /** Streak savers: up to this many missed days per week (weeks start Sunday) don't break the streak. */
 export const SAVERS_PER_WEEK = 2;
 const weekKey = (d: Date) => { const x = new Date(d); x.setDate(x.getDate() - x.getDay()); return today(x); };
@@ -179,13 +182,13 @@ function streakInfo(activity: Record<string, number>, goalsDone: Record<string, 
 }
 
 /** Consecutive study days ending today (or yesterday), with up to 2 saved days per week. */
-export function streak(activity: Record<string, number>, goalsDone: Record<string, boolean> = {}) {
-  return streakInfo(activity, goalsDone).n;
+export function streak(activity: Record<string, number>, goalsDone: Record<string, boolean> = {}, focus: Record<string, number> = {}) {
+  return streakInfo(studyActivity(activity, focus), goalsDone).n;
 }
 
 /** Days covered by a streak saver and savers still free this week. */
-export function streakSavers(activity: Record<string, number>, goalsDone: Record<string, boolean> = {}) {
-  const { saved, leftThisWeek } = streakInfo(activity, goalsDone);
+export function streakSavers(activity: Record<string, number>, goalsDone: Record<string, boolean> = {}, focus: Record<string, number> = {}) {
+  const { saved, leftThisWeek } = streakInfo(studyActivity(activity, focus), goalsDone);
   return { saved, left: Math.max(0, leftThisWeek) };
 }
 
@@ -203,7 +206,8 @@ export async function flushPending(uid = state.userId) {
 if (typeof window !== "undefined") window.addEventListener("online", () => { void flushPending(); });
 
 /** Longest run of consecutive study days ever logged. */
-export function bestStreak(activity: Record<string, number>, goalsDone: Record<string, boolean> = {}) {
+export function bestStreak(activity: Record<string, number>, goalsDone: Record<string, boolean> = {}, focus: Record<string, number> = {}) {
+  activity = studyActivity(activity, focus);
   const days = Array.from(new Set([...Object.keys(activity), ...Object.keys(goalsDone)]))
     .filter((k) => studiedOn(activity, goalsDone, k)).sort();
   let best = 0, run = 0, prev: number | null = null;
@@ -215,12 +219,40 @@ export function bestStreak(activity: Record<string, number>, goalsDone: Record<s
 }
 
 /** Log finished focus minutes for today; they deepen the day's colour on the consistency map. */
-export async function addFocusMinutes(min: number) {
-  const d = today(); const total = (state.focus[d] ?? 0) + min;
+export async function addFocusMinutes(min: number, d = today()) {
+  if (!Number.isFinite(min) || min <= 0) return;
+  const total = (state.focus[d] ?? 0) + min;
   set((s) => ({ ...s, focus: { ...s.focus, [d]: total } }));
-  const uid = state.userId; if (!uid || !navigator.onLine) return;
-  warn(await supabase.from("activity").upsert({ user_id: uid, day: d, focus_minutes: total }));
+  const uid = state.userId; if (!uid) return;
+  const k = `bacflow-focus-pending:${uid}`;
+  const pending = JSON.parse(localStorage.getItem(k) || "{}") as Record<string, number>;
+  pending[d] = (pending[d] ?? 0) + min;
+  localStorage.setItem(k, JSON.stringify(pending));
+  if (navigator.onLine) await flushFocus(uid);
 }
+
+let focusFlush: Promise<void> | null = null;
+async function flushFocus(uid: string) {
+  if (focusFlush) { await focusFlush; return flushFocus(uid); }
+  focusFlush = (async () => {
+    const k = `bacflow-focus-pending:${uid}`;
+    const pending = JSON.parse(localStorage.getItem(k) || "{}") as Record<string, number>;
+    for (const [day, minutes] of Object.entries(pending)) {
+      const current = await supabase.from("activity").select("focus_minutes").eq("user_id", uid).eq("day", day).maybeSingle();
+      if (current.error) continue;
+      const total = (current.data?.focus_minutes ?? 0) + minutes;
+      const result = await supabase.from("activity").upsert({ user_id: uid, day, focus_minutes: total });
+      if (result.error) continue;
+      const rest = JSON.parse(localStorage.getItem(k) || "{}") as Record<string, number>;
+      rest[day] = (rest[day] ?? 0) - minutes;
+      if (rest[day] <= 0) delete rest[day];
+      localStorage.setItem(k, JSON.stringify(rest));
+      if (state.userId === uid) set((s) => ({ ...s, focus: { ...s.focus, [day]: total + (rest[day] ?? 0) } }));
+    }
+  })();
+  try { await focusFlush; } finally { focusFlush = null; }
+}
+if (typeof window !== "undefined") window.addEventListener("online", () => { if (state.userId) void flushFocus(state.userId); });
 
 /** Consistency level for a day: each ticked item counts 1, every 25 focused minutes counts 1. */
 export const dayScore = (items: number, focusMin: number) => items + Math.floor(focusMin / 25);
