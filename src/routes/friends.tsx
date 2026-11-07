@@ -16,6 +16,8 @@ export const Route = createFileRoute("/friends")({
       { name: "description", content: "Compete with classmates across Science and Math streams, react and nudge each other." },
       { property: "og:title", content: "Friends & Leaderboard — BacFlow" },
       { property: "og:description", content: "Cross-stream Bac leaderboard with classmates." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Friends,

@@ -17,6 +17,8 @@ export const Route = createFileRoute("/subjects")({
       { name: "description", content: "Every Bac subject, unit, lesson, exercise and past paper from 2008 to 2026 — tick them off as you go." },
       { property: "og:title", content: "Syllabus — BacFlow" },
       { property: "og:description", content: "Every Bac subject, unit, lesson, exercise and past paper." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Subjects,
