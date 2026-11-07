@@ -64,6 +64,13 @@
       "when": 1793773552471,
       "tag": "0008_activity_focus_minutes",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794034682600,
+      "tag": "0009_focus_sessions_count_for_leaderboard_streak",
+      "breakpoints": true
     }
   ]
 }

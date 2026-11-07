@@ -15,6 +15,8 @@ export const Route = createFileRoute("/chat")({
       { name: "description", content: "Group and direct chats with classmates, share units, PDFs and images." },
       { property: "og:title", content: "Study Chat — BacFlow" },
       { property: "og:description", content: "Study groups and direct messages for Bac students." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Chat,

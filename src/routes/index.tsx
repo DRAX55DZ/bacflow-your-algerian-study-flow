@@ -15,6 +15,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Your weighted Bac Algérie completion, streak, countdown and study heatmap." },
       { property: "og:title", content: "Dashboard — BacFlow" },
       { property: "og:description", content: "Your weighted Bac Algérie completion, streak, countdown and study heatmap." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Dashboard,
@@ -31,7 +33,7 @@ const QUOTES = [
 function Dashboard() {
   const s = useAppState();
   const overall = overallPct(s.stream, s.done);
-  const st = streak(s.activity, s.allDone);
+  const st = streak(s.activity, s.allDone, s.focus);
   const { t, lang } = useT();
 
   return (
@@ -50,7 +52,7 @@ function Dashboard() {
         </motion.div>
         <div className="mt-3 text-3xl font-bold">{st} {t(st === 1 ? "day" : "days")}</div>
         <div className="text-sm text-muted-foreground">{t("Study streak")}</div>
-        <StreakExtras activity={s.activity} allDone={s.allDone} st={st} />
+        <StreakExtras activity={s.activity} allDone={s.allDone} focus={s.focus} st={st} />
       </Card>
 
       <Countdown />
@@ -82,18 +84,18 @@ function Dashboard() {
 }
 
 const GOALS = [3, 7, 14, 30, 60, 100, 200, 365];
-function StreakExtras({ activity, allDone, st }: { activity: Record<string, number>; allDone: Record<string, boolean>; st: number }) {
+function StreakExtras({ activity, allDone, focus, st }: { activity: Record<string, number>; allDone: Record<string, boolean>; focus: Record<string, number>; st: number }) {
   const { t } = useT();
   const [week, setWeek] = useState<{ k: string; on: boolean; saved: boolean }[]>([]);
   const [left, setLeft] = useState(2);
   useEffect(() => {
-    const sv = streakSavers(activity, allDone); setLeft(sv.left);
+    const sv = streakSavers(activity, allDone, focus); setLeft(sv.left);
     const out: { k: string; on: boolean; saved: boolean }[] = [];
-    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const k = today(d); out.push({ k, on: studiedOn(activity, allDone, k), saved: sv.saved.includes(k) }); }
+    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const k = today(d); out.push({ k, on: studiedOn(activity, allDone, k) || (focus[k] ?? 0) > 0, saved: sv.saved.includes(k) }); }
     setWeek(out);
-  }, [activity, allDone]);
-  const studied = week.length ? week[6]!.on : false;
-  const best = Math.max(bestStreak(activity, allDone), st);
+  }, [activity, allDone, focus]);
+  const studied = week[6]?.on ?? false;
+  const best = Math.max(bestStreak(activity, allDone, focus), st);
   const goal = GOALS.find((g) => g > st) ?? st + 100;
   return (
     <div className="mt-3 w-full space-y-2">
