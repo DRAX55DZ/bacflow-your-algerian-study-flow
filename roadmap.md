@@ -1,0 +1,3 @@
+- [ ] Count completed focus sessions toward every streak display.
+- [ ] Persist timer settings, running/paused time and session totals across navigation and reloads.
+- [ ] Verify timer completion, saved state and regression tests.
