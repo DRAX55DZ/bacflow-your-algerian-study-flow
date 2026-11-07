@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { STREAM_LABEL, type Stream } from "@/lib/syllabus";
 import { ThemeMenu } from "@/components/ThemePicker";
 import { useFocusClock } from "@/lib/focus-timer";
+import { beep } from "@/lib/focus-alarm";
 import { useT } from "@/lib/i18n";
 
 const NAV = [
@@ -22,6 +23,20 @@ const NAV = [
 export function AppShell({ children }: { children: ReactNode }) {
   const s = useAppState();
   useFocusClock(s.userId);
+  useEffect(() => {
+    const alarm = (event: Event) => {
+      beep();
+      try {
+        if ("Notification" in window && Notification.permission === "granted") {
+          const msg = (event as CustomEvent<{ work: boolean }>).detail.work ? "Break time ☕" : "Back to focus 📚";
+          if (navigator.serviceWorker?.controller) void navigator.serviceWorker.ready.then((r) => r.showNotification(msg)).catch(() => {});
+          else new Notification(msg);
+        }
+      } catch { /* unsupported */ }
+    };
+    window.addEventListener("bacflow-timer-finished", alarm);
+    return () => window.removeEventListener("bacflow-timer-finished", alarm);
+  }, []);
   const path = useRouterState({ select: (r) => r.location.pathname });
   const [drawer, setDrawer] = useState(false);
   const [alert, setAlert] = useState("");

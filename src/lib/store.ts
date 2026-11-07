@@ -53,6 +53,7 @@ export async function loadUser(userId: string | null) {
     try { const snap = JSON.parse(localStorage.getItem(SNAP) || "null") as State | null; if (snap?.userId === userId) { set(() => ({ ...snap, ready: true })); return; } } catch { /* ignore */ }
   }
   await flushPending(userId);
+  await flushFocus(userId);
   const [p, pr, a, n, t] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("progress").select("item_id").eq("user_id", userId),
