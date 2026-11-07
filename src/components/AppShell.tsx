@@ -6,6 +6,7 @@ import { addNote, deleteNote, streak, updateProfile, useAppState, type Note } fr
 import { supabase } from "@/integrations/supabase/client";
 import { STREAM_LABEL, type Stream } from "@/lib/syllabus";
 import { ThemeMenu } from "@/components/ThemePicker";
+import { useFocusClock } from "@/lib/focus-timer";
 import { useT } from "@/lib/i18n";
 
 const NAV = [
@@ -20,6 +21,7 @@ const NAV = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const s = useAppState();
+  useFocusClock(s.userId);
   const path = useRouterState({ select: (r) => r.location.pathname });
   const [drawer, setDrawer] = useState(false);
   const [alert, setAlert] = useState("");
@@ -70,7 +72,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
           </div>
           <div className="flex items-center gap-1 rounded-full bg-gradient-flame px-3 py-1.5 text-sm font-bold text-primary-foreground glow-flame">
-            <Flame className="size-4" /> {streak(s.activity, s.allDone)}
+            <Flame className="size-4" /> {streak(s.activity, s.allDone, s.focus)}
           </div>
           <button onClick={() => setDrawer(true)} title={t("Formula & mistake log")} className="size-9 flex items-center justify-center rounded-full hover:bg-muted"><NotebookPen className="size-4" /></button>
           <ThemeMenu />

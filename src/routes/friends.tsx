@@ -54,7 +54,7 @@ function Friends() {
     flash(error ? "Couldn't send" : kind === "nudge" ? `Nudged ${f.name} to study 📣` : `Sent ${kind} to ${f.name}`);
   };
 
-  const me = { id: "me", name: `${s.name} (${t("you")})`, stream: s.stream, streak: streak(s.activity, s.allDone), pct: Math.round(overallPct(s.stream, s.done)), last: "", active: true };
+  const me = { id: "me", name: `${s.name} (${t("you")})`, stream: s.stream, streak: streak(s.activity, s.allDone, s.focus), pct: Math.round(overallPct(s.stream, s.done)), last: "", active: true };
   const ranked = [...friends, me].filter((f) => filter === "all" || f.stream === filter)
     .sort((a, b) => (sortBy === "pct" ? b.pct - a.pct || b.streak - a.streak : b.streak - a.streak || b.pct - a.pct));
   const myRank = ranked.findIndex((f) => f.id === "me") + 1;

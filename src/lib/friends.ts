@@ -12,11 +12,11 @@ export async function fetchFriends(userId: string): Promise<Friend[]> {
   const [p, pr, a] = await Promise.all([
     supabase.from("profiles").select("id,name,stream,last_activity").in("id", ids),
     supabase.from("progress").select("user_id,item_id").in("user_id", ids),
-    supabase.from("activity").select("user_id,day,count,all_done").in("user_id", ids),
+    supabase.from("activity").select("user_id,day,count,all_done,focus_minutes").in("user_id", ids),
   ]);
   return (p.data ?? []).map((f) => {
     const done = Object.fromEntries((pr.data ?? []).filter((r) => r.user_id === f.id).map((r) => [r.item_id, true]));
-    const act = Object.fromEntries((a.data ?? []).filter((r) => r.user_id === f.id).map((r) => [r.day, Math.max(r.count, r.all_done ? 1 : 0)]));
+    const act = Object.fromEntries((a.data ?? []).filter((r) => r.user_id === f.id).map((r) => [r.day, Math.max(r.count, r.all_done || r.focus_minutes > 0 ? 1 : 0)]));
     const st = streak(act);
     return { id: f.id, name: f.name || "Student", stream: f.stream as Stream, streak: st, pct: Math.round(overallPct(f.stream as Stream, done)), last: f.last_activity, active: st > 0 };
   });

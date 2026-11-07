@@ -5,7 +5,9 @@ import confetti from "canvas-confetti";
 import { Pause, Play, RotateCcw, SkipForward, Volume2, VolumeX } from "lucide-react";
 import { Card } from "@/components/AppShell";
 import { useT } from "@/lib/i18n";
-import { addFocusMinutes, today } from "@/lib/store";
+import { today } from "@/lib/store";
+import { Button } from "@/components/ui/button";
+import { configureTimer, resetTimer, selectTimerMode, skipTimer, timerDuration, toggleTimer, useFocusTimer, type FocusMode } from "@/lib/focus-timer";
 
 export const Route = createFileRoute("/focus")({
   head: () => ({
@@ -21,7 +23,7 @@ export const Route = createFileRoute("/focus")({
   component: Focus,
 });
 
-type Mode = "work" | "break" | "long";
+type Mode = FocusMode;
 const PRESETS = [
   { label: "25 / 5", work: 25, brk: 5 },
   { label: "50 / 10", work: 50, brk: 10 },
@@ -29,83 +31,18 @@ const PRESETS = [
 ];
 const SOUNDS = ["Rain", "Brown noise", "Café"] as const;
 type Sound = (typeof SOUNDS)[number] | null;
-const STATS_KEY = "bacflow-focus-stats";
-
-function loadStats(): Record<string, { sessions: number; minutes: number }> {
-  try { return JSON.parse(localStorage.getItem(STATS_KEY) || "{}"); } catch { return {}; }
-}
-
-function beep() {
-  try {
-    const ctx = new AudioContext();
-    [0, 0.3, 0.6, 1.2, 1.5, 1.8].forEach((t, i) => {
-      const o = ctx.createOscillator(); o.type = "square"; const g = ctx.createGain();
-      o.frequency.value = i % 3 === 2 ? 1046 : 784; o.connect(g).connect(ctx.destination);
-      g.gain.setValueAtTime(0.9, ctx.currentTime + t); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.22);
-      o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.24);
-    });
-    setTimeout(() => ctx.close(), 2500);
-  } catch { /* ignore */ }
-}
-
 function Focus() {
   const { t } = useT();
-  const [work, setWork] = useState(25);
-  const [brk, setBrk] = useState(5);
-  const [mode, setMode] = useState<Mode>("work");
-  const [left, setLeft] = useState(25 * 60);
-  const [run, setRun] = useState(false);
+  const { work, brk, mode, left, run, round, stats } = useFocusTimer();
   const [sound, setSound] = useState<Sound>(null);
-  const [round, setRound] = useState(0);
-  const [stats, setStats] = useState<Record<string, { sessions: number; minutes: number }>>({});
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const endAt = useRef<number | null>(null);
   const audio = useRef<AudioContext | null>(null);
-
-  useEffect(() => { setStats(loadStats()); }, []);
-
-  const dur = (m: Mode) => (m === "work" ? work : m === "long" ? brk * 3 : brk) * 60;
-
-  const finish = () => {
-    beep();
-    if (mode === "work") {
-      confetti({ particleCount: 120, spread: 90 });
-      const d = today(new Date()); const s = loadStats();
-      s[d] = { sessions: (s[d]?.sessions ?? 0) + 1, minutes: (s[d]?.minutes ?? 0) + work };
-      localStorage.setItem(STATS_KEY, JSON.stringify(s)); setStats(s); void addFocusMinutes(work);
-      const r = round + 1; setRound(r);
-      const next: Mode = r % 4 === 0 ? "long" : "break";
-      setMode(next); setLeft(dur(next)); endAt.current = Date.now() + dur(next) * 1000;
-    } else {
-      setMode("work"); setLeft(dur("work")); endAt.current = Date.now() + dur("work") * 1000;
-    }
-    // A 0-minute next session would end instantly in a loop — pause instead.
-    const nextMode: Mode = mode === "work" ? ((round + 1) % 4 === 0 ? "long" : "break") : "work";
-    if (dur(nextMode) === 0) setRun(false);
-    // Phones don't allow `new Notification()` (it throws), so never let it break the page.
-    try {
-      if ("Notification" in window && Notification.permission === "granted") {
-        const msg = mode === "work" ? "Break time ☕" : "Back to focus 📚";
-        if (navigator.serviceWorker?.controller) void navigator.serviceWorker.ready.then((r) => r.showNotification(msg)).catch(() => {});
-        else new Notification(msg);
-      }
-    } catch { /* unsupported */ }
-  };
-
-  // Timestamp-based ticking so the timer stays accurate in background tabs.
+  const dur = (m: Mode) => timerDuration({ work, brk, mode, left, run, round, stats, endAt: null }, m);
   useEffect(() => {
-    if (!run) { endAt.current = null; return; }
-    endAt.current = Date.now() + left * 1000;
-    const id = setInterval(() => {
-      const rem = Math.max(0, Math.round(((endAt.current ?? Date.now()) - Date.now()) / 1000));
-      setLeft(rem);
-    }, 250);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [run, mode]);
-
-  useEffect(() => { if (run && left === 0) finish(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [left, run]);
-
+    const celebrate = (event: Event) => { if ((event as CustomEvent<{ work: boolean }>).detail.work) confetti({ particleCount: 120, spread: 90 }); };
+    window.addEventListener("bacflow-timer-finished", celebrate);
+    return () => window.removeEventListener("bacflow-timer-finished", celebrate);
+  }, []);
   useEffect(() => {
     const mm = String(Math.floor(left / 60)).padStart(2, "0"), ss = String(left % 60).padStart(2, "0");
     document.title = run ? `${mm}:${ss} · ${mode === "work" ? "Focus" : "Break"} — BacFlow` : "Focus Timer — BacFlow";
@@ -131,12 +68,12 @@ function Focus() {
 
   const total = Math.max(1, dur(mode));
   const r = 110, c = 2 * Math.PI * r;
-  const reset = () => { setRun(false); setMode("work"); setLeft(work * 60); };
+  const reset = resetTimer;
   const start = () => {
-    if (!run && "Notification" in window && Notification.permission === "default") Notification.requestPermission();
-    setRun(!run);
+    try { if (!run && "Notification" in window && Notification.permission === "default") void Notification.requestPermission().catch(() => {}); } catch { /* unsupported */ }
+    toggleTimer();
   };
-  const applyPreset = (w: number, b: number) => { setWork(w); setBrk(b); setRun(false); setMode("work"); setLeft(w * 60); };
+  const applyPreset = (w: number, b: number) => configureTimer(w, b, true);
   const d = stats[today(new Date())] ?? { sessions: 0, minutes: 0 };
   const color = mode === "work" ? "var(--violet)" : "var(--mint)";
 
@@ -145,9 +82,9 @@ function Focus() {
       <Card className="md:col-span-2 flex flex-col items-center py-10">
         <div className="flex gap-1 rounded-full bg-muted p-1">
           {(["work", "break", "long"] as Mode[]).map((m) => (
-            <button key={m} onClick={() => { setRun(false); setMode(m); setLeft(dur(m)); }} className={`rounded-full px-3 py-1 text-xs font-medium ${mode === m ? "bg-gradient-brand text-primary-foreground" : "text-muted-foreground"}`}>
+            <Button variant="ghost" key={m} onClick={() => selectTimerMode(m)} className={`rounded-full px-3 py-1 text-xs font-medium ${mode === m ? "bg-gradient-brand text-primary-foreground" : "text-muted-foreground"}`}>
               {t(m === "work" ? "Focus" : m === "break" ? "Short break" : "Long break")}
-            </button>
+            </Button>
           ))}
         </div>
         <div className="relative mt-6">
@@ -161,14 +98,14 @@ function Focus() {
           </div>
         </div>
         <div className="mt-6 flex gap-3">
-          <button onClick={start} className="flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-3 font-medium text-primary-foreground glow-violet">{run ? <Pause className="size-4" /> : <Play className="size-4" />}{run ? t("Pause") : t("Start")}</button>
-          <button onClick={reset} title={t("Reset")} className="rounded-full bg-muted p-3"><RotateCcw className="size-4" /></button>
-          <button onClick={() => finish()} title={t("Skip")} className="rounded-full bg-muted p-3"><SkipForward className="size-4" /></button>
+          <Button variant="ghost" onClick={start} className="flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-3 font-medium text-primary-foreground glow-violet">{run ? <Pause className="size-4" /> : <Play className="size-4" />}{run ? t("Pause") : t("Start")}</Button>
+          <Button variant="ghost" onClick={reset} title={t("Reset")} className="rounded-full bg-muted p-3"><RotateCcw className="size-4" /></Button>
+          <Button variant="ghost" onClick={skipTimer} title={t("Skip")} className="rounded-full bg-muted p-3"><SkipForward className="size-4" /></Button>
         </div>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button onClick={() => setSound(null)} className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs ${!sound ? "bg-primary text-primary-foreground" : "bg-muted"}`}><VolumeX className="size-3" />{t("Silent")}</button>
+          <Button variant="ghost" onClick={() => setSound(null)} className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs ${!sound ? "bg-primary text-primary-foreground" : "bg-muted"}`}><VolumeX className="size-3" />{t("Silent")}</Button>
           {SOUNDS.map((s) => (
-            <button key={s} onClick={() => setSound(s)} className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs ${sound === s ? "bg-mint text-background" : "bg-muted"}`}><Volume2 className="size-3" />{t(s)}</button>
+            <Button variant="ghost" key={s} onClick={() => setSound(s)} className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs ${sound === s ? "bg-mint text-background" : "bg-muted"}`}><Volume2 className="size-3" />{t(s)}</Button>
           ))}
         </div>
       </Card>
@@ -184,14 +121,14 @@ function Focus() {
           <h2 className="font-bold">{t("Settings")}</h2>
           <div className="mt-3 flex gap-2">
             {PRESETS.map((p) => (
-              <button key={p.label} onClick={() => applyPreset(p.work, p.brk)} className={`flex-1 rounded-xl py-2 text-xs font-mono ${work === p.work && brk === p.brk ? "bg-gradient-brand text-primary-foreground" : "bg-muted"}`}>{p.label}</button>
+              <Button variant="ghost" key={p.label} onClick={() => applyPreset(p.work, p.brk)} className={`flex-1 rounded-xl py-2 text-xs font-mono ${work === p.work && brk === p.brk ? "bg-gradient-brand text-primary-foreground" : "bg-muted"}`}>{p.label}</Button>
             ))}
           </div>
-          {([["Focus (min)", work, setWork, "work"], ["Break (min)", brk, setBrk, "break"]] as const).map(([l, v, set, m]) => (
+          {([["Focus (min)", work, "work"], ["Break (min)", brk, "break"]] as const).map(([l, v, m]) => (
             <label key={l} className="mt-4 block text-sm">
               <span className="text-muted-foreground">{t(l)}</span>
               <input type="number" inputMode="numeric" min={0} max={180} value={v === 0 && drafts[m] === "" ? "" : v}
-                onChange={(e) => { const raw = e.target.value; setDrafts((x) => ({ ...x, [m]: raw })); const n = Math.min(180, Math.max(0, Math.floor(+raw) || 0)); set(n); if (!run && (mode === m || (m === "break" && mode === "long"))) setLeft((m === "break" && mode === "long" ? n * 3 : n) * 60); }}
+                onChange={(e) => { const raw = e.target.value; setDrafts((x) => ({ ...x, [m]: raw })); const n = Math.min(180, Math.max(0, Math.floor(+raw) || 0)); configureTimer(m === "work" ? n : work, m === "break" ? n : brk); }}
                 className="mt-1 w-full rounded-xl bg-muted px-3 py-2 outline-none" />
             </label>
           ))}
